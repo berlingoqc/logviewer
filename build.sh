@@ -15,12 +15,12 @@ function build() {
         export GOOS=$1
         export GOARCH=$2
 
-        export WD=./build/${GOOS}/${GOARCH}
+        export WD=./build/
 
         mkdir -p $WD
 
         go build -ldflags "-X git.tmaws.io/tmconnect/logexplorer/cmd.sha1ver=${VERSION}" \
-                -o ${WD}/logexplorer
+                -o ${WD}/logexplorer-${GOOS}-${GOARCH}
 }
 
 
