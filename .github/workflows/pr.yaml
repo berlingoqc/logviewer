@@ -1,0 +1,29 @@
+name: pull requests
+
+on:
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Go 1.19.5
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.19.5
+      - name: Test
+        run: go test
+      - name: Build for all plateform
+        run: ./build.sh
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Development Build"
+          files: |
+            ./build/*
+
