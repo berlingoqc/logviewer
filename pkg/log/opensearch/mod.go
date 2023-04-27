@@ -51,13 +51,16 @@ type logSearchResult struct {
 
 func (sr logSearchResult) GetEntries() ([]client.LogEntry, error) {
 
-    entries := make([]client.LogEntry, len(sr.result.Hits.Hits))
+
+    size := len(sr.result.Hits.Hits)
+
+    entries := make([]client.LogEntry, size)
 
     for i, h := range sr.result.Hits.Hits {
         message, b := h.Source["message"].(string)
         if !b { 
             fmt.Printf("message is not string : %+v \n", h.Source["message"])
-            entries[i] = client.LogEntry{}
+            entries[size-i-1] = client.LogEntry{}
             continue;
         }
         if timestamp, b1 := h.Source["@timestamp"].(string); b1 {
@@ -68,7 +71,7 @@ func (sr logSearchResult) GetEntries() ([]client.LogEntry, error) {
                 level, _ = h.Source["level"].(string)
             }
 
-            entries[i] = client.LogEntry{Message: message, Timestamp: date, Level: level }
+            entries[size-i-1] = client.LogEntry{Message: message, Timestamp: date, Level: level, Fields: h.Source }
         } else {
             fmt.Printf("timestamp is not string : %+v \n", h.Source["@timestamp"])
         }
@@ -100,7 +103,7 @@ func (sr logSearchResult) GetTags() (client.AvailableTags, error) {
     return tags, nil;
 }
 
-func (sr logSearchResult) OnChange(ctx context.Context) (chan []client.LogEntry, error) {
+func (sr logSearchResult) OnChange(ctx context.Context) (chan client.LogSearchResult, error) {
     if sr.search.RefreshOptions.Duration == "" {
         return nil, nil
     }
@@ -108,7 +111,7 @@ func (sr logSearchResult) OnChange(ctx context.Context) (chan []client.LogEntry,
     duration, err := time.ParseDuration(sr.search.RefreshOptions.Duration)
     if err != nil { return nil, err }
 
-    c := make(chan []client.LogEntry, 5)
+    c := make(chan client.LogSearchResult, 5)
     go func () {
         for {
             select {
@@ -118,9 +121,7 @@ func (sr logSearchResult) OnChange(ctx context.Context) (chan []client.LogEntry,
                     sr.search.Range.Lte = time.Now().Format(time.RFC3339)
                     result, err1 := sr.client.Get(sr.search)
                     if err1 != nil { fmt.Println("failed to get new logs " + err1.Error()) }
-                    entries, err2 := result.GetEntries()
-                    if err2 != nil { fmt.Println("failed to get entries " + err2.Error()) }
-                    c <- entries
+                    c <- result
                 }
             case <- ctx.Done():
                 close(c)

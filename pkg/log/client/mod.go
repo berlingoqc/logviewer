@@ -3,6 +3,8 @@ package client
 import (
 	"context"
 	"time"
+
+	"git.tmaws.io/tmconnect/logexplorer/pkg/ty"
 )
 
 type SearchRange struct {
@@ -16,7 +18,8 @@ type RefreshOptions struct {
 }
 
 type LogSearch struct {
-    Tags map[string]string
+    Tags ty.MS    
+    TagsCondition ty.MS
 
     Range SearchRange
     
@@ -33,6 +36,8 @@ type LogEntry struct {
     Timestamp time.Time
     Message string
     Level string
+
+    Fields ty.MI
 }
 
 
@@ -41,7 +46,7 @@ type LogEntry struct {
 // or keep updated
 type LogSearchResult interface {
     GetEntries() ([]LogEntry, error)
-    OnChange(ctx context.Context) (chan []LogEntry, error)
+    OnChange(ctx context.Context) (chan LogSearchResult, error)
     GetTags() (AvailableTags, error)
 }
 

@@ -1,6 +1,7 @@
 package opensearch
 
 import (
+
 	"git.tmaws.io/tmconnect/logexplorer/pkg/log/client"
 	"git.tmaws.io/tmconnect/logexplorer/pkg/ty"
 )
@@ -44,8 +45,14 @@ func GetSearchRequest(logSearch client.LogSearch) SearchRequest {
     index := 0
 
     for k, v := range logSearch.Tags {
+
+        op, b := logSearch.TagsCondition[k]
+        if !b || op == "" {
+            op = "match"
+        }
+
         conditions[index] = Map{
-            "match": Map{
+            op: Map{
                 k: v,
             },
         }

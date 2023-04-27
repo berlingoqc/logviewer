@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	"git.tmaws.io/tmconnect/logexplorer/pkg/ty"
 )
 
 type JsonGetClient struct {
@@ -13,7 +15,7 @@ type JsonGetClient struct {
 	url    string
 }
 
-func (c JsonGetClient) Get(path string, queryParams map[string]string, body interface{}, responseData interface{}) error {
+func (c JsonGetClient) Get(path string, queryParams ty.MS, body interface{}, responseData interface{}) error {
 
     var buf bytes.Buffer
     encErr := json.NewEncoder(&buf).Encode(body)

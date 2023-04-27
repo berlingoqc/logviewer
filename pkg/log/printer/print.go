@@ -5,19 +5,36 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"text/template"
+	"time"
 
 	"git.tmaws.io/tmconnect/logexplorer/pkg/log/client"
 )
 
-type PrintPrinter struct{}
+type PrinterOptions struct{
+    Template string
+}
+
+func formatDate(layout string, t time.Time) string {
+    return t.Format(layout)
+}
+
+type PrintPrinter struct{
+    Options PrinterOptions
+}
 
 func (pp PrintPrinter) Append(result client.LogSearchResult) error {
+
+    template, err3 := template.New("print_printer").Funcs(
+        template.FuncMap{"Format": formatDate },
+    ).Parse(pp.Options.Template + "\n")
+    if err3 != nil { return err3 }
 
     entries, err := result.GetEntries()
     if err != nil { return err }
 
 	for _, entry := range entries {
-		fmt.Printf("[%v][%s] %s \n", entry.Timestamp, entry.Level, entry.Message)
+        template.Execute(os.Stdout, entry)
 	}
 
     ctx := context.Background()
@@ -42,9 +59,10 @@ func (pp PrintPrinter) Append(result client.LogSearchResult) error {
             }
         }()
 
-        for newEntries := range newEntriesChannel {
-        	for _, entry := range newEntries {
-		        fmt.Printf("[%v][%s] %s \n", entry.Timestamp, entry.Level, entry.Message)
+        for newResult := range newEntriesChannel {
+            entries, _ := newResult.GetEntries()
+        	for _, entry := range entries {
+                template.Execute(os.Stdout, entry)
 	        }
         }
     }

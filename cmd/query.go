@@ -21,14 +21,25 @@ var (
 	last string
 
     fields []string
+    fieldsOps []string
 
 	size int
 
     refreshOptions client.RefreshOptions
-
+    
     outputter printer.PrintPrinter
 )
 
+func stringArrayEnvVariable(strs []string, maps *ty.MS) error {
+    for _ , f := range strs {
+        items := strings.Split(f, "=")
+        if len(items) < 2 {
+            return errors.New("invalid value : " + f)
+        }
+        (*maps)[items[0]] = strings.Join(items[1:], "")
+    }
+    return nil
+}
 
 func resolveSearch() (client.LogSearchResult, error) {
 	var lte, gte string
@@ -59,17 +70,13 @@ func resolveSearch() (client.LogSearchResult, error) {
     searchRequest := client.LogSearch{
         Size: size,
         Range: client.SearchRange{Lte: lte, Gte: gte},
-        Tags: map[string]string{},
+        Tags: ty.MS{},
+        TagsCondition: ty.MS{},
         RefreshOptions: refreshOptions,
     }
 
-    for _ , f := range fields {
-        items := strings.Split(f, "=")
-        if len(items) < 2 {
-            return nil, errors.New("invalid --field : " + f)
-        }
-        searchRequest.Tags[items[0]] = strings.Join(items[1:], "")
-    }
+    stringArrayEnvVariable(fields, &searchRequest.Tags)
+    stringArrayEnvVariable(fieldsOps, &searchRequest.TagsCondition)
 
 	openSearchClient := opensearch.GetClient(target)
 	searchResult, err2 := openSearchClient.Get(searchRequest)
@@ -124,6 +131,33 @@ var queryCommand = &cobra.Command{
 
 func init() {
 	target = opensearch.OpenSearchTarget{}
+
+	queryCommand.PersistentFlags().StringVar(&target.Endpoint, "opensearch-endpoint", "", "Opensearch endpoint")
+	queryCommand.PersistentFlags().StringVar(&target.Index, "opensearch-index", "", "Opensearch index to search")
+
+
+	queryCommand.PersistentFlags().StringVar(&from, "from", "", "Get entry gte datetime date >= from")
+	queryCommand.PersistentFlags().StringVar(&to, "to", "", "Get entry lte datetime date <= to")
+	queryCommand.PersistentFlags().StringVar(&last, "last", "15m", "Get entry in the last duration")
+	queryCommand.PersistentFlags().IntVar(&size, "size", 100, "Get entry max size")
+    queryCommand.PersistentFlags().StringArrayVarP(&fields, "fields", "f", []string{}, "Field for selection field=value")
+    queryCommand.PersistentFlags().StringArrayVarP(
+        &fieldsOps, "fields-condition", "c", []string{}, "Field Ops for selection field=value (match, exists, wildcard, regex)",
+    )
+
+    queryLogCommand.PersistentFlags().StringVar(
+        &refreshOptions.Duration, "refresh-rate", "", "If provide refresh log at the rate provide (ex: 30s)")
+    queryLogCommand.PersistentFlags().StringVar(
+        &outputter.Options.Template,
+        "format",
+        "[{{.Timestamp.Format \"15:04:05\" }}][{{.Fields.applicationName}}][{{.Level}}] {{.Message}}", "Format for the log entry")
+
+
+
+	queryCommand.MarkFlagRequired("opensearch-endpoint")
+	queryCommand.MarkFlagRequired("opensearch-index")
+
+
 
 	queryCommand.AddCommand(queryLogCommand)
 	queryCommand.AddCommand(queryTagCommand)
