@@ -83,6 +83,7 @@ func resolveSearch() (client.LogSearchResult, error) {
 
 var queryTagCommand = &cobra.Command{
 	Use: "field",
+    Short: "Dispaly available field for filtering of logs",
 	Run: func(cmd *cobra.Command, args []string) {
 		searchResult, err1 := resolveSearch()
 
@@ -103,6 +104,7 @@ var queryTagCommand = &cobra.Command{
 
 var queryLogCommand = &cobra.Command{
 	Use: "log",
+    Short: "Display logs for system",
 	Run: func(cmd *cobra.Command, args []string) {
 		searchResult, err1 := resolveSearch()
 
@@ -116,6 +118,7 @@ var queryLogCommand = &cobra.Command{
 
 var queryCommand = &cobra.Command{
 	Use: "query",
+    Short: "Query a login system for logs and available fields",
 	Run: func(cmd *cobra.Command, args []string) {},
 }
 

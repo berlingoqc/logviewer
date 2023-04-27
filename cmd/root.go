@@ -32,8 +32,8 @@ func Execute() {
 
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&target.Endpoint, "opensearch-endpoint", "", "opensearch endpoint")
-	rootCmd.PersistentFlags().StringVar(&target.Index, "opensearch-index", "", "Search index")
+	rootCmd.PersistentFlags().StringVar(&target.Endpoint, "opensearch-endpoint", "", "Opensearch endpoint")
+	rootCmd.PersistentFlags().StringVar(&target.Index, "opensearch-index", "", "Opensearch index to search")
 
 
     rootCmd.PersistentFlags().StringVar(&refreshOptions.Duration, "refresh-rate", "", "If provide refresh log at the rate provide (ex: 30s)")
@@ -41,7 +41,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&to, "to", "", "Get entry lte datetime date <= to")
 	rootCmd.PersistentFlags().StringVar(&last, "last", "15m", "Get entry in the last duration")
 	rootCmd.PersistentFlags().IntVar(&size, "size", 100, "Get entry max size")
-    rootCmd.PersistentFlags().StringArrayVarP(&fields, "fields", "f", []string{}, "field for selection field=value")
+    rootCmd.PersistentFlags().StringArrayVarP(&fields, "fields", "f", []string{}, "Field for selection field=value")
 
 	rootCmd.MarkFlagRequired("opensearch-endpoint")
 	rootCmd.MarkFlagRequired("opensearch-index")
