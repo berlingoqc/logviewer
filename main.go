@@ -1,8 +1,6 @@
 package main
 
-import (
-	"git.tmaws.io/tmconnect/logexplorer/cmd"
-)
+import "github.com/berlingoqc/logexplorer/cmd"
 
 func main() {
     cmd.Execute()

@@ -1,8 +1,7 @@
 package printer
 
-import "git.tmaws.io/tmconnect/logexplorer/pkg/log/client"
+import "github.com/berlingoqc/logexplorer/pkg/log/client"
 
-
-type LogPrinter interface{
-    Append(entry []client.LogEntry) error
+type LogPrinter interface {
+	Append(entry []client.LogEntry) error
 }

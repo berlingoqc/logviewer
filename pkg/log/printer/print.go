@@ -2,70 +2,70 @@ package printer
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"text/template"
 	"time"
 
-	"git.tmaws.io/tmconnect/logexplorer/pkg/log/client"
+	"github.com/berlingoqc/logexplorer/pkg/log/client"
 )
 
-type PrinterOptions struct{
-    Template string
+type PrinterOptions struct {
+	Template string
 }
 
 func formatDate(layout string, t time.Time) string {
-    return t.Format(layout)
+	return t.Format(layout)
 }
 
-type PrintPrinter struct{
-    Options PrinterOptions
+type PrintPrinter struct {
+	Options PrinterOptions
 }
 
 func (pp PrintPrinter) Append(result client.LogSearchResult) error {
 
-    template, err3 := template.New("print_printer").Funcs(
-        template.FuncMap{"Format": formatDate },
-    ).Parse(pp.Options.Template + "\n")
-    if err3 != nil { return err3 }
-
-    entries, err := result.GetEntries()
-    if err != nil { return err }
-
-	for _, entry := range entries {
-        template.Execute(os.Stdout, entry)
+	template, err3 := template.New("print_printer").Funcs(
+		template.FuncMap{"Format": formatDate},
+	).Parse(pp.Options.Template + "\n")
+	if err3 != nil {
+		return err3
 	}
 
-    ctx := context.Background()
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
 
-    ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
-    defer cancel()
+	entries, newEntriesChannel, err := result.GetEntries(ctx)
+	if err != nil {
+		return err
+	}
 
-    newEntriesChannel, err := result.OnChange(ctx)
+	for _, entry := range entries {
+		template.Execute(os.Stdout, entry)
+	}
 
-    if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
-    if newEntriesChannel != nil {
+	if newEntriesChannel != nil {
 
-        c := make(chan os.Signal, 1)
-        signal.Notify(c, os.Interrupt)
-        go func() {
-            for range c {
-                fmt.Println("signal to end")
-                cancel()
-                return;
-            }
-        }()
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			for range c {
+				cancel()
+				return
+			}
+		}()
 
-        for newResult := range newEntriesChannel {
-            entries, _ := newResult.GetEntries()
-        	for _, entry := range entries {
-                template.Execute(os.Stdout, entry)
-	        }
-        }
-    }
+		for entries := range newEntriesChannel {
+			for _, entry := range entries {
+				template.Execute(os.Stdout, entry)
+			}
+		}
+	}
 
 	return nil
 }
