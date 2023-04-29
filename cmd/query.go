@@ -8,21 +8,29 @@ import (
 	"time"
 
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
+	"github.com/berlingoqc/logexplorer/pkg/log/config"
+	"github.com/berlingoqc/logexplorer/pkg/log/factory"
 	"github.com/berlingoqc/logexplorer/pkg/log/k8s"
+	"github.com/berlingoqc/logexplorer/pkg/log/local"
 	"github.com/berlingoqc/logexplorer/pkg/log/opensearch"
 	"github.com/berlingoqc/logexplorer/pkg/log/printer"
+	"github.com/berlingoqc/logexplorer/pkg/log/ssh"
 	"github.com/berlingoqc/logexplorer/pkg/ty"
 	"github.com/spf13/cobra"
 )
 
 var (
 	target opensearch.OpenSearchTarget
+    index string
 
     k8sNamespace string
     k8sPod string
     k8sContainer string
     k8sPrevious bool
     k8sTimestamp bool
+
+    sshOptions ssh.SSHLogClientOptions
+    cmd string
 
 	from string
 	to   string
@@ -38,6 +46,10 @@ var (
     refresh bool
 
 	outputter printer.PrintPrinter
+
+
+    contextPath string
+    contextId string
 )
 
 func stringArrayEnvVariable(strs []string, maps *ty.MS) error {
@@ -52,6 +64,23 @@ func stringArrayEnvVariable(strs []string, maps *ty.MS) error {
 }
 
 func resolveSearch() (client.LogSearchResult, error) {
+
+
+    if contextPath != "" || contextId != "" {
+        var config config.ContextConfig
+        if err := ty.ReadJsonFile(contextPath, &config); err != nil {
+            return nil, err
+        }
+
+        clientFactory, err := factory.GetLogClientFactory(config.Clients)
+        if err != nil { return nil, err }
+        searchFactory, err := factory.GetLogSearchFactory(clientFactory, config)
+        if err != nil { return nil, err }
+
+        return searchFactory.GetSearchResult(contextId)
+    }
+
+
 	var lte, gte string
 	var fromDate time.Time
 	var err error
@@ -70,10 +99,21 @@ func resolveSearch() (client.LogSearchResult, error) {
         system = "opensearch"
     } else if k8sNamespace != "" {
         system = "k8s"
+    } else if cmd != "" {
+        if sshOptions.Addr != "" {
+            system = "ssh"
+        } else {
+            system = "local"
+        }
     } else {
-        return nil, errors.New("failed to select a system for logging provide --openseach-endpoint or --k8s-namespace")
+        return nil, errors.New(`
+        failed to select a system for logging provide one of the following:
+            * --openseach-endpoint
+            * --k8s-namespace
+            * --ssh-addr
+            * --cmd
+        `)
     }
-
 
 	if from != "" {
 		fromDate, err = time.Parse(ty.Format, from)
@@ -114,10 +154,10 @@ func resolveSearch() (client.LogSearchResult, error) {
     var logClient client.LogClient
 
     if system == "opensearch" {
-
+        searchRequest.Options["Index"] = index
 
         logClient = opensearch.GetClient(target)
-    } else {
+    } else if system == "k8s" {
 
         searchRequest.Options[k8s.FieldContainer] = k8sContainer
         searchRequest.Options[k8s.FieldNamespace] = k8sNamespace
@@ -125,8 +165,18 @@ func resolveSearch() (client.LogSearchResult, error) {
         searchRequest.Options[k8s.FieldPrevious] = k8sPrevious
         searchRequest.Options[k8s.OptionsTimestamp] = k8sTimestamp
 
-        logClient, err = k8s.GetLogClient()
+        logClient, err = k8s.GetLogClient(k8s.K8sLogClientOptions{})
         if err != nil { return nil, err }
+    } else if system == "ssh" {
+
+        searchRequest.Options[ssh.OptionsCmd] = cmd
+
+        logClient, err = ssh.GetLogClient(sshOptions)
+    } else {
+
+        searchRequest.Options[local.OptionsCmd] = cmd
+
+        logClient, err = local.GetLogClient()
     }
 
 
@@ -184,6 +234,12 @@ var queryCommand = &cobra.Command{
 func init() {
 	target = opensearch.OpenSearchTarget{}
 
+
+    // CONFIG
+
+    queryCommand.PersistentFlags().StringVarP(&contextPath, "config", "c", "", "Config for preconfigure context for search")
+    queryCommand.PersistentFlags().StringVarP(&contextId, "id", "i", "", "Context id to execute")
+
     // IMPL SPECIFIQUE
 
     // K8S
@@ -194,8 +250,15 @@ func init() {
     queryCommand.PersistentFlags().BoolVar(&k8sTimestamp, "k8s-timestamp", false, "K8s include RFC3339 timestamp")
     // OPENSEARCH
 	queryCommand.PersistentFlags().StringVar(&target.Endpoint, "opensearch-endpoint", "", "Opensearch endpoint")
-	queryCommand.PersistentFlags().StringVar(&target.Index, "opensearch-index", "", "Opensearch index to search")
+	queryCommand.PersistentFlags().StringVar(&index, "opensearch-index", "", "Opensearch index to search")
+    // SSH
+    queryCommand.PersistentFlags().StringVar(&sshOptions.Addr, "ssh-addr", "", "SSH address and port localhost:22")
+    queryCommand.PersistentFlags().StringVar(&sshOptions.User, "ssh-user", "", "SSH user")
+    queryCommand.PersistentFlags().StringVar(&sshOptions.PrivateKey, "ssh-identifiy", "", "SSH private key , by default $HOME/.ssh/id_rsa")
 
+
+    // COMMAND
+    queryCommand.PersistentFlags().StringVar(&cmd, "cmd", "", "If using ssh or local , manual command to run")
 
     // RANGE
 	queryCommand.PersistentFlags().StringVar(&from, "from", "", "Get entry gte datetime date >= from")
@@ -207,10 +270,12 @@ func init() {
 
     // FIELD validation
 	queryCommand.PersistentFlags().StringArrayVarP(&fields, "fields", "f", []string{}, "Field for selection field=value")
-	queryCommand.PersistentFlags().StringArrayVarP(
-		&fieldsOps, "fields-condition", "c", []string{}, "Field Ops for selection field=value (match, exists, wildcard, regex)",
+	queryCommand.PersistentFlags().StringArrayVar(
+		&fieldsOps, "fields-condition", []string{}, "Field Ops for selection field=value (match, exists, wildcard, regex)",
 	)
-    queryCommand.PersistentFlags().StringVar(&regex, "fields-regex", "", "Regex to extract field from log text, using named group \".*(?P<Level>INFO|WARN|ERROR).*\"")
+    queryCommand.PersistentFlags().StringVar(
+        &regex, "fields-regex", "", 
+        "Regex to extract field from log text, using named group \".*(?P<Level>INFO|WARN|ERROR).*\"")
 
     // LIVE DATA OPTIONS
 	queryLogCommand.PersistentFlags().StringVar(

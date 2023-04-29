@@ -35,12 +35,14 @@ func (lr *ReaderLogResult) parseLine(line string) bool {
 
 		if lr.regexExtraction != nil {
 			match := lr.regexExtraction.FindStringSubmatch(line)
-			for i, name := range lr.regexExtraction.SubexpNames() {
-				if i != 0 && name != "" {
-					lr.tags.AddTag(name, match[i])
-					entry.Fields[name] = match[i]
-				}
-			}
+            if len(match) > 0 { 
+    			for i, name := range lr.regexExtraction.SubexpNames() {
+	    			if i != 0 && name != "" {
+		    			lr.tags.AddTag(name, match[i])
+			    		entry.Fields[name] = match[i]
+				    }
+			    }
+            }
 		}
 
 		for k, v := range lr.search.Tags {

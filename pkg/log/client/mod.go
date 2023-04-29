@@ -8,39 +8,39 @@ import (
 )
 
 type SearchRange struct {
-	Lte string
-	Gte string
-    Last string
+	Lte string `json="lte"`
+	Gte string `json="gte"`
+    Last string `json="last"`
 }
 
 type RefreshOptions struct {
-	Duration string
+	Duration string `json="duration"`
 }
 
 type TagExtraction struct {
-	Regex string
+	Regex string `json="regex"`
 }
 
 type LogSearch struct {
 	// Current filterring tags
-	Tags ty.MS
+	Tags ty.MS `json="tags"`
 	// Extra rules for filtering tags
-	TagsCondition ty.MS
+	TagsCondition ty.MS `json="tagsCondition"`
 
 	// Range of the log query to do , depends of the system for full availability
-	Range SearchRange
+	Range SearchRange `json="searchRange"`
 
 	// Max size of the request
-	Size int
+	Size int `json="size"`
 
 	// Refresh options for live data
-	RefreshOptions RefreshOptions
+	RefreshOptions RefreshOptions `json="refreshOptions"`
 
 	// Options to configure the implementation with specific configuration for the search
-	Options ty.MI
+	Options ty.MI `json="options"`
 
 	// Extra fields for tag extraction for system without tagging of log entry
-	TagExtraction TagExtraction
+	TagExtraction TagExtraction `json="tagExtraction"`
 }
 
 type AvailableTags map[string][]string

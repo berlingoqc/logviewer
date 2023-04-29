@@ -2,6 +2,7 @@ package opensearch
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,7 +13,6 @@ import (
 
 type OpenSearchTarget struct {
 	Endpoint string `json:"endpoint"`
-	Index    string `json:"index"`
 }
 
 type kibanaClient struct {
@@ -23,9 +23,15 @@ type kibanaClient struct {
 func (kc kibanaClient) Get(search client.LogSearch) (client.LogSearchResult, error) {
 	var searchResult SearchResult
 
+    index := search.Options.GetString("Index")
+
+    if index == "" {
+        return nil, errors.New("Index is not provided for opensearch log client")
+    }
+
 	request := GetSearchRequest(search)
 
-	err := kc.client.Get("/_search", ty.MS{}, &request, &searchResult)
+	err := kc.client.Get(fmt.Sprintf("%s/_search", index), ty.MS{}, &request, &searchResult)
 	if err != nil {
 		return nil, err
 	}
@@ -157,6 +163,6 @@ func (sr logSearchResult) onChange(ctx context.Context) (chan []client.LogEntry,
 func GetClient(target OpenSearchTarget) client.LogClient {
 	return kibanaClient{
 		target: target,
-		client: http.GetClient(target.Endpoint + "/" + target.Index),
+		client: http.GetClient(target.Endpoint),
 	}
 }

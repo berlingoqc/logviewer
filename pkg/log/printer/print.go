@@ -11,7 +11,7 @@ import (
 )
 
 type PrinterOptions struct {
-	Template string
+	Template string `json="template"`
 }
 
 func formatDate(layout string, t time.Time) string {

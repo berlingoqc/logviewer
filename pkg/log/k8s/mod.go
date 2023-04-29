@@ -25,6 +25,11 @@ const (
 	OptionsTimestamp = "timestamp"
 )
 
+
+type K8sLogClientOptions struct {
+    KubeConfig string `json:"kubeConfig"`
+}
+
 /*
 
 * Need to support regex for pod name , to be able to get all pods from a deployment or someting
@@ -42,6 +47,7 @@ func (lc k8sLogClient) Get(search client.LogSearch) (client.LogSearchResult, err
 	container := search.Options.GetString(FieldContainer)
 	previous := search.Options.GetBool(FieldPrevious)
 	timestamp := search.Options.GetBool(OptionsTimestamp)
+
 	follow := search.RefreshOptions.Duration != ""
 
 	tailLines := int64(search.Size)
@@ -84,9 +90,15 @@ func (lc k8sLogClient) Get(search client.LogSearch) (client.LogSearchResult, err
 	return reader.GetLogResult(search, scanner, podLogs), nil
 }
 
-func GetLogClient() (client.LogClient, error) {
+func GetLogClient(options K8sLogClientOptions) (client.LogClient, error) {
 
-	kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
+	var kubeconfig string
+    if options.KubeConfig == "" {
+        kubeconfig = filepath.Join(homedir.HomeDir(), ".kube", "config")
+    } else {
+        kubeconfig = options.KubeConfig;
+    }
+
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, err
