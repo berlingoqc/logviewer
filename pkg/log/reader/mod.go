@@ -3,6 +3,7 @@ package reader
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"regexp"
 
@@ -73,8 +74,10 @@ func (lr *ReaderLogResult) loadEntries() bool {
 func (lr ReaderLogResult) GetEntries(ctx context.Context) ([]client.LogEntry, chan []client.LogEntry, error) {
 
 	if lr.search.RefreshOptions.Duration == "" {
+        fmt.Println("starting loading entries")
 		lr.loadEntries()
 		lr.closer.Close()
+        fmt.Println("ending loading entries")
 		return lr.entries, nil, nil
 	} else {
 		c := make(chan []client.LogEntry)

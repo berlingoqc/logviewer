@@ -5,6 +5,7 @@ import (
 
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
 	"github.com/berlingoqc/logexplorer/pkg/log/config"
+	"github.com/berlingoqc/logexplorer/pkg/log/printer"
 )
 
 
@@ -16,20 +17,21 @@ type logSearchFactory struct {
 }
 
 
-func (sf *logSearchFactory) GetSearchResult(contextId string) (client.LogSearchResult, error) {
+func (sf *logSearchFactory) GetSearchResult(contextId string) (client.LogSearchResult, printer.PrinterOptions, error) {
 
-    clientId, search, err := sf.config.GetSearchContext(contextId)
+    searchContext, err := sf.config.GetSearchContext(contextId)
     if err != nil {
-        return nil, err
+        return nil, printer.PrinterOptions{}, err
     }
 
-    logClient := sf.clientsFactory.clients[clientId]
+    logClient := sf.clientsFactory.clients[searchContext.Client]
     if logClient == nil {
-        return nil, errors.New("cant find client : " + clientId)
+        return nil, printer.PrinterOptions{}, errors.New("cant find client : " + searchContext.Client)
     }
     
+    sr, err := logClient.Get(searchContext.Search)
 
-    return logClient.Get(search)
+    return sr, searchContext.PrinterOptions, err
 }
 
 func GetLogSearchFactory(

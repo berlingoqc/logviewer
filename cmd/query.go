@@ -74,10 +74,16 @@ func resolveSearch() (client.LogSearchResult, error) {
 
         clientFactory, err := factory.GetLogClientFactory(config.Clients)
         if err != nil { return nil, err }
+
         searchFactory, err := factory.GetLogSearchFactory(clientFactory, config)
         if err != nil { return nil, err }
 
-        return searchFactory.GetSearchResult(contextId)
+        sr, po, err :=  searchFactory.GetSearchResult(contextId)
+
+        // TODO: this is a bad way to pass down this value
+        outputter.Options = po
+
+        return sr, err
     }
 
 
@@ -150,6 +156,9 @@ func resolveSearch() (client.LogSearchResult, error) {
 
 	stringArrayEnvVariable(fields, &searchRequest.Tags)
 	stringArrayEnvVariable(fieldsOps, &searchRequest.TagsCondition)
+
+
+
 
     var logClient client.LogClient
 

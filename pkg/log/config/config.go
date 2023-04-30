@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
+	"github.com/berlingoqc/logexplorer/pkg/log/printer"
 	"github.com/berlingoqc/logexplorer/pkg/ty"
 )
 
@@ -17,6 +18,7 @@ type SearchContext struct {
     Client string `json="client"`
     SearchInherit string `json="searchInherit"`
     Search client.LogSearch `json="search"`
+    PrinterOptions printer.PrinterOptions `json="printerOptions"`
 }
 
 type Clients map[string]Client
@@ -31,13 +33,11 @@ type ContextConfig struct {
     Contexts
 }
 
-
-
-func (cc ContextConfig) GetSearchContext(contextId string) (string, client.LogSearch, error) {
+func (cc ContextConfig) GetSearchContext(contextId string) (SearchContext, error) {
     if searchContext, b := cc.Contexts[contextId]; b {
         // TODO: inheritance
-        return searchContext.Client, searchContext.Search, nil
+        return searchContext, nil
     } else {
-        return "", client.LogSearch{}, errors.New("cant find context : " + contextId)
+        return SearchContext{}, errors.New("cant find context : " + contextId)
     }
 }

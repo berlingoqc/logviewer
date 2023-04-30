@@ -42,6 +42,7 @@ func (lc localLogClient) Get(search client.LogSearch) (client.LogSearchResult, e
 
     scanner := bufio.NewScanner(stdout)
 
+
     return reader.GetLogResult(search, scanner, stdout), nil
 }
 
