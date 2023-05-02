@@ -3,8 +3,8 @@ package opensearch
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
+    "fmt"
 
 	"github.com/berlingoqc/logexplorer/pkg/http"
 	"github.com/berlingoqc/logexplorer/pkg/log/client"

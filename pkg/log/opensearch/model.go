@@ -2,7 +2,6 @@ package opensearch
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
@@ -50,8 +49,6 @@ func GetSearchRequest(logSearch client.LogSearch) (SearchRequest, error) {
 
     var fromDate time.Time
     var err error
-
-    fmt.Println(logSearch)
 
     if logSearch.Range.Lte != "" {
         fromDate, err = time.Parse(ty.Format, logSearch.Range.Lte)

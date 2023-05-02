@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -23,9 +22,6 @@ func (c JsonGetClient) Get(path string, queryParams ty.MS, body interface{}, res
 	if encErr != nil {
 		return encErr
 	}
-
-    fmt.Println(path)
-    fmt.Println(string(buf.Bytes()))
 
 	req, err := http.NewRequest("GET", c.url+path, &buf)
 	if err != nil {
