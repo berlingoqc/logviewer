@@ -29,9 +29,12 @@ func (kc kibanaClient) Get(search client.LogSearch) (client.LogSearchResult, err
         return nil, errors.New("Index is not provided for opensearch log client")
     }
 
-	request := GetSearchRequest(search)
+	request, err := GetSearchRequest(search)
+    if err != nil {
+        return nil, err
+    }
 
-	err := kc.client.Get(fmt.Sprintf("%s/_search", index), ty.MS{}, &request, &searchResult)
+	err = kc.client.Get(fmt.Sprintf("/%s/_search", index), ty.MS{}, &request, &searchResult)
 	if err != nil {
 		return nil, err
 	}
@@ -127,11 +130,11 @@ func (sr logSearchResult) parseResults() []client.LogEntry {
 }
 
 func (sr logSearchResult) onChange(ctx context.Context) (chan []client.LogEntry, error) {
-	if sr.search.RefreshOptions.Duration == "" {
+	if sr.search.Refresh.Duration == "" {
 		return nil, nil
 	}
 
-	duration, err := time.ParseDuration(sr.search.RefreshOptions.Duration)
+	duration, err := time.ParseDuration(sr.search.Refresh.Duration)
 	if err != nil {
 		return nil, err
 	}

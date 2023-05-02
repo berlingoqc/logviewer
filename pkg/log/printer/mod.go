@@ -1,7 +1,11 @@
 package printer
 
-import "github.com/berlingoqc/logexplorer/pkg/log/client"
+import (
+	"context"
+
+	"github.com/berlingoqc/logexplorer/pkg/log/client"
+)
 
 type LogPrinter interface {
-	Append(entry []client.LogEntry) error
+	Display(ctx context.Context, result client.LogSearchResult) error
 }

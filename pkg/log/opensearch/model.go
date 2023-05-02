@@ -1,6 +1,10 @@
 package opensearch
 
 import (
+	"errors"
+	"fmt"
+	"time"
+
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
 	"github.com/berlingoqc/logexplorer/pkg/ty"
 )
@@ -35,11 +39,40 @@ type SearchRequest struct {
 	Sort  []SortItem `json:"sort"`
 }
 
-func GetSearchRequest(logSearch client.LogSearch) SearchRequest {
+func GetSearchRequest(logSearch client.LogSearch) (SearchRequest, error) {
 
 	conditions := make([]Map, len(logSearch.Tags)+1)
 
 	index := 0
+
+
+    var gte, lte string
+
+    var fromDate time.Time
+    var err error
+
+    fmt.Println(logSearch)
+
+    if logSearch.Range.Lte != "" {
+        fromDate, err = time.Parse(ty.Format, logSearch.Range.Lte)
+        if err != nil {
+            return SearchRequest{}, errors.New("can't parse lte date");
+        }
+        lte = logSearch.Range.Lte
+    } else {
+        fromDate = time.Now()
+        lte = fromDate.Format(ty.Format)
+    }
+
+    if logSearch.Range.Gte != "" {
+        gte = logSearch.Range.Gte
+    } else {
+        if duration, err := time.ParseDuration(logSearch.Range.Last); err == nil {
+            gte = fromDate.Add(-duration).Format(ty.Format)
+        } else {
+            return SearchRequest{}, errors.New("can't parse duration for last : " + logSearch.Range.Last)
+        }
+    }
 
 	for k, v := range logSearch.Tags {
 
@@ -61,8 +94,8 @@ func GetSearchRequest(logSearch client.LogSearch) SearchRequest {
 		"range": Map{
 			"@timestamp": Map{
 				"format": "strict_date_optional_time",
-				"gte":    logSearch.Range.Gte,
-				"lte":    logSearch.Range.Lte,
+				"gte":    gte,
+				"lte":    lte,
 			},
 		},
 	}
@@ -84,5 +117,5 @@ func GetSearchRequest(logSearch client.LogSearch) SearchRequest {
 		Query: query,
 		Sort:  []SortItem{sortItem},
 		Size:  logSearch.Size,
-	}
+	}, nil
 }

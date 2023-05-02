@@ -3,6 +3,7 @@ package ssh
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net"
 	"path/filepath"
@@ -46,10 +47,9 @@ func (lc sshLogClient) Get(search client.LogSearch) (client.LogSearchResult, err
 	if err != nil {
         return nil, err
 	}
-	defer session.Close()
 
 	modes := sshc.TerminalModes{
-		sshc.ECHO:          0,     // disable echoing
+        sshc.ECHO:          0,     // disable echoing
 		sshc.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
 		sshc.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
 	}
@@ -64,6 +64,8 @@ func (lc sshLogClient) Get(search client.LogSearch) (client.LogSearchResult, err
         return nil, err
 	}
 
+    errOut, err := session.StderrPipe()
+
     out, err := session.StdoutPipe()
 	if err != nil {
         return nil, err
@@ -72,6 +74,10 @@ func (lc sshLogClient) Get(search client.LogSearch) (client.LogSearchResult, err
     go func () {
         _, err = session.Output(cmd)
         if err != nil {
+
+            by, _ := ioutil.ReadAll(errOut)
+            fmt.Println("Error : " + string(by))
+
             panic(err)
         }
     }()
@@ -107,6 +113,7 @@ func GetLogClient(options SSHLogClientOptions) (client.LogClient, error) {
         }),
 	}
 
+    
 	conn, err := sshc.Dial("tcp", options.Addr, sshConfig)
 	if err != nil {
 		return nil, err

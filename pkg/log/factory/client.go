@@ -28,17 +28,25 @@ func GetLogClientFactory(clients config.Clients) (*logClientFactory, error) {
 	for k, v := range clients {
 		switch v.Type {
 		case "opensearch":
-			logClientFactory.clients[k] = opensearch.GetClient(opensearch.OpenSearchTarget{})
+			logClientFactory.clients[k] = opensearch.GetClient(opensearch.OpenSearchTarget{
+                Endpoint: v.Options["Endpoint"],
+            })
         case "local":
             if logClientFactory.clients[k], err = local.GetLogClient(); err != nil {
                 return nil, err
             }
         case "k8s":
-            if logClientFactory.clients[k], err = k8s.GetLogClient(k8s.K8sLogClientOptions{}); err != nil {
+            if logClientFactory.clients[k], err = k8s.GetLogClient(k8s.K8sLogClientOptions{
+                KubeConfig: v.Options["KubeConfig"],
+            }); err != nil {
                 return nil, err
             }
         case "ssh":
-            if logClientFactory.clients[k], err = ssh.GetLogClient(ssh.SSHLogClientOptions{}); err != nil {
+            if logClientFactory.clients[k], err = ssh.GetLogClient(ssh.SSHLogClientOptions{
+                User: v.Options["User"],
+                Addr: v.Options["Addr"],
+                PrivateKey: v.Options["PrivateKey"],
+            }); err != nil {
                 return nil, err
             }
 		default:

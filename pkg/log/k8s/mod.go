@@ -48,7 +48,7 @@ func (lc k8sLogClient) Get(search client.LogSearch) (client.LogSearchResult, err
 	previous := search.Options.GetBool(FieldPrevious)
 	timestamp := search.Options.GetBool(OptionsTimestamp)
 
-	follow := search.RefreshOptions.Duration != ""
+	follow := search.Refresh.Duration != ""
 
 	tailLines := int64(search.Size)
 

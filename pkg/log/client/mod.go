@@ -28,13 +28,13 @@ type LogSearch struct {
 	TagsCondition ty.MS `json="tagsCondition"`
 
 	// Range of the log query to do , depends of the system for full availability
-	Range SearchRange `json="searchRange"`
+	Range SearchRange `json="range"`
 
 	// Max size of the request
 	Size int `json="size"`
 
 	// Refresh options for live data
-	RefreshOptions RefreshOptions `json="refreshOptions"`
+	Refresh RefreshOptions `json="refresh"`
 
 	// Options to configure the implementation with specific configuration for the search
 	Options ty.MI `json="options"`
