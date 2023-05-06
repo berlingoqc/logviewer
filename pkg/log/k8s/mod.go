@@ -25,9 +25,8 @@ const (
 	OptionsTimestamp = "timestamp"
 )
 
-
 type K8sLogClientOptions struct {
-    KubeConfig string `json:"kubeConfig"`
+	KubeConfig string `json:"kubeConfig"`
 }
 
 /*
@@ -48,9 +47,9 @@ func (lc k8sLogClient) Get(search client.LogSearch) (client.LogSearchResult, err
 	previous := search.Options.GetBool(FieldPrevious)
 	timestamp := search.Options.GetBool(OptionsTimestamp)
 
-	follow := search.Refresh.Duration != ""
+	follow := search.Refresh.Duration.Value != ""
 
-	tailLines := int64(search.Size)
+	tailLines := int64(search.Size.Value)
 
 	ipod := lc.clientset.CoreV1().Pods(namespace)
 
@@ -62,13 +61,15 @@ func (lc k8sLogClient) Get(search client.LogSearch) (client.LogSearchResult, err
 		Previous:   previous,
 	}
 
-    if search.Range.Last != "" {
-        lastDuration, err := time.ParseDuration(search.Range.Last)
-        if err != nil { return nil, err }
-        seconds := int64(lastDuration.Seconds())
-        logOptions.SinceSeconds = &seconds
-    } else if search.Range.Gte != "" {
-		time, err := time.Parse(time.RFC3339, search.Range.Gte)
+	if search.Range.Last.Value != "" {
+		lastDuration, err := time.ParseDuration(search.Range.Last.Value)
+		if err != nil {
+			return nil, err
+		}
+		seconds := int64(lastDuration.Seconds())
+		logOptions.SinceSeconds = &seconds
+	} else if search.Range.Gte.Value != "" {
+		time, err := time.Parse(time.RFC3339, search.Range.Gte.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -93,11 +94,11 @@ func (lc k8sLogClient) Get(search client.LogSearch) (client.LogSearchResult, err
 func GetLogClient(options K8sLogClientOptions) (client.LogClient, error) {
 
 	var kubeconfig string
-    if options.KubeConfig == "" {
-        kubeconfig = filepath.Join(homedir.HomeDir(), ".kube", "config")
-    } else {
-        kubeconfig = options.KubeConfig;
-    }
+	if options.KubeConfig == "" {
+		kubeconfig = filepath.Join(homedir.HomeDir(), ".kube", "config")
+	} else {
+		kubeconfig = options.KubeConfig
+	}
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {

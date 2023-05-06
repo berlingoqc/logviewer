@@ -9,23 +9,23 @@ import (
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
 )
 
-type PrinterOptions struct {
-	Template string `json="template"`
-}
-
 func formatDate(layout string, t time.Time) string {
 	return t.Format(layout)
 }
 
-type PrintPrinter struct {
-	Options PrinterOptions
-}
+type PrintPrinter struct{}
 
 func (pp PrintPrinter) Display(ctx context.Context, result client.LogSearchResult) error {
 
+	templateConfig := result.GetSearch().PrinterOptions.Template
+
+	if templateConfig.Value == "" {
+		templateConfig.S("[{{.Timestamp}}] {{.Message}}")
+	}
+
 	template, err3 := template.New("print_printer").Funcs(
 		template.FuncMap{"Format": formatDate},
-	).Parse(pp.Options.Template + "\n")
+	).Parse(templateConfig.Value + "\n")
 	if err3 != nil {
 		return err3
 	}

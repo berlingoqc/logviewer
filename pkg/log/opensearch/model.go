@@ -12,7 +12,7 @@ type Hit struct {
 	Index  string `json:"_index"`
 	Type   string `json:"_type"`
 	Id     string `json:"_id"`
-	Score  int32  `json:"_score""`
+	Score  int32  `json:"_score"`
 	Source ty.MI  `json:"_source"`
 }
 
@@ -44,32 +44,38 @@ func GetSearchRequest(logSearch client.LogSearch) (SearchRequest, error) {
 
 	index := 0
 
+	var gte, lte string
 
-    var gte, lte string
+	var fromDate time.Time
+	var err error
 
-    var fromDate time.Time
-    var err error
+	if logSearch.Size.Value == 0 {
+		logSearch.Size.S(0)
+	}
 
-    if logSearch.Range.Lte != "" {
-        fromDate, err = time.Parse(ty.Format, logSearch.Range.Lte)
-        if err != nil {
-            return SearchRequest{}, errors.New("can't parse lte date");
-        }
-        lte = logSearch.Range.Lte
-    } else {
-        fromDate = time.Now()
-        lte = fromDate.Format(ty.Format)
-    }
+	if logSearch.Range.Lte.Value != "" {
+		fromDate, err = time.Parse(ty.Format, logSearch.Range.Lte.Value)
+		if err != nil {
+			return SearchRequest{}, errors.New("can't parse lte date")
+		}
+		lte = logSearch.Range.Lte.Value
+	} else {
+		fromDate = time.Now()
+		lte = fromDate.Format(ty.Format)
+	}
 
-    if logSearch.Range.Gte != "" {
-        gte = logSearch.Range.Gte
-    } else {
-        if duration, err := time.ParseDuration(logSearch.Range.Last); err == nil {
-            gte = fromDate.Add(-duration).Format(ty.Format)
-        } else {
-            return SearchRequest{}, errors.New("can't parse duration for last : " + logSearch.Range.Last)
-        }
-    }
+	if logSearch.Range.Gte.Value != "" {
+		gte = logSearch.Range.Gte.Value
+	} else {
+		if !logSearch.Range.Last.Valid {
+			return SearchRequest{}, errors.New("if not Range.Gte provided must provied Range.Last")
+		}
+		if duration, err := time.ParseDuration(logSearch.Range.Last.Value); err == nil {
+			gte = fromDate.Add(-duration).Format(ty.Format)
+		} else {
+			return SearchRequest{}, errors.New("can't parse duration for last : " + logSearch.Range.Last.Value)
+		}
+	}
 
 	for k, v := range logSearch.Tags {
 
@@ -113,6 +119,6 @@ func GetSearchRequest(logSearch client.LogSearch) (SearchRequest, error) {
 	return SearchRequest{
 		Query: query,
 		Sort:  []SortItem{sortItem},
-		Size:  logSearch.Size,
+		Size:  logSearch.Size.Value,
 	}, nil
 }

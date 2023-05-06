@@ -3,8 +3,8 @@ package opensearch
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
-    "fmt"
 
 	"github.com/berlingoqc/logexplorer/pkg/http"
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
@@ -23,16 +23,16 @@ type kibanaClient struct {
 func (kc kibanaClient) Get(search client.LogSearch) (client.LogSearchResult, error) {
 	var searchResult SearchResult
 
-    index := search.Options.GetString("Index")
+	index := search.Options.GetString("Index")
 
-    if index == "" {
-        return nil, errors.New("Index is not provided for opensearch log client")
-    }
+	if index == "" {
+		return nil, errors.New("index is not provided for opensearch log client")
+	}
 
 	request, err := GetSearchRequest(search)
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
 	err = kc.client.Get(fmt.Sprintf("/%s/_search", index), ty.MS{}, &request, &searchResult)
 	if err != nil {
@@ -57,15 +57,18 @@ type logSearchResult struct {
 	// store extracted tags
 }
 
+func (sr logSearchResult) GetSearch() *client.LogSearch {
+	return &sr.search
+}
+
 func (sr logSearchResult) GetEntries(context context.Context) ([]client.LogEntry, chan []client.LogEntry, error) {
 
-    entries := sr.parseResults()
+	entries := sr.parseResults()
 
-    c, err := sr.onChange(context)
+	c, err := sr.onChange(context)
 
 	return entries, c, err
 }
-
 
 // TODO: tags not being updated from live data
 func (sr logSearchResult) GetTags() (client.AvailableTags, error) {
@@ -126,15 +129,15 @@ func (sr logSearchResult) parseResults() []client.LogEntry {
 		}
 	}
 
-    return entries
+	return entries
 }
 
 func (sr logSearchResult) onChange(ctx context.Context) (chan []client.LogEntry, error) {
-	if sr.search.Refresh.Duration == "" {
+	if sr.search.Refresh.Duration.Value == "" {
 		return nil, nil
 	}
 
-	duration, err := time.ParseDuration(sr.search.Refresh.Duration)
+	duration, err := time.ParseDuration(sr.search.Refresh.Duration.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +148,8 @@ func (sr logSearchResult) onChange(ctx context.Context) (chan []client.LogEntry,
 			select {
 			case <-time.After(duration):
 				{
-					sr.search.Range.Gte = sr.search.Range.Lte
-					sr.search.Range.Lte = time.Now().Format(time.RFC3339)
+					sr.search.Range.Gte.Value = sr.search.Range.Lte.Value
+					sr.search.Range.Lte.Value = time.Now().Format(time.RFC3339)
 					result, err1 := sr.client.Get(sr.search)
 					if err1 != nil {
 						fmt.Println("failed to get new logs " + err1.Error())
@@ -161,7 +164,6 @@ func (sr logSearchResult) onChange(ctx context.Context) (chan []client.LogEntry,
 	}()
 	return c, nil
 }
-
 
 func GetClient(target OpenSearchTarget) client.LogClient {
 	return kibanaClient{

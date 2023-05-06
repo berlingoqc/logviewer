@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
+	"github.com/berlingoqc/logexplorer/pkg/ty"
 )
 
 func TestBody(t *testing.T) {
@@ -15,16 +16,16 @@ func TestBody(t *testing.T) {
 			"instance":        "pod-1234",
 			"applicationName": "mfx.services.tsapi",
 		},
-		Range: client.SearchRange{
-			Gte: "gte",
-			Lte: "lte",
-		},
-		Size: 100,
+		Range: client.SearchRange{Last: ty.OptWrap("30m")},
+		Size:  ty.OptWrap(100),
 	}
 
-	request := GetSearchRequest(logSearch)
+	request, err := GetSearchRequest(logSearch)
+	if err != nil {
+		t.Error(err)
+	}
 
 	b, _ := json.MarshalIndent(&request, "", "    ")
 
-	fmt.Printf(string(b))
+	fmt.Println(string(b))
 }

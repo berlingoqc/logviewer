@@ -18,6 +18,7 @@ import (
 	"github.com/berlingoqc/logexplorer/pkg/log/ssh"
 	"github.com/berlingoqc/logexplorer/pkg/ty"
 	"github.com/berlingoqc/logexplorer/pkg/views"
+
 	"github.com/spf13/cobra"
 )
 
@@ -40,14 +41,15 @@ var (
 
 	fields    []string
 	fieldsOps []string
+	inherits  []string
 	regex     string
 
 	size int
 
-	refreshOptions client.RefreshOptions
-	refresh        bool
+	duration string
+	refresh  bool
 
-	outputter printer.PrintPrinter
+	template string
 
 	contextPath string
 	contextId   string
@@ -66,6 +68,74 @@ func stringArrayEnvVariable(strs []string, maps *ty.MS) error {
 
 func resolveSearch() (client.LogSearchResult, error) {
 
+	// resolve this from args
+	searchRequest := client.LogSearch{
+		Tags:          ty.MS{},
+		TagsCondition: ty.MS{},
+		Options:       ty.MI{},
+	}
+	if size > 0 {
+		searchRequest.Size.S(size)
+	}
+	if duration != "" {
+		searchRequest.Refresh.Duration.S(duration)
+	}
+	if regex != "" {
+		searchRequest.TagExtraction.Regex.S(regex)
+	}
+
+	if to != "" {
+		searchRequest.Range.Lte.S(to)
+	}
+
+	if from != "" {
+		searchRequest.Range.Gte.S(from)
+	}
+
+	if last != "" {
+		searchRequest.Range.Last.S(last)
+	}
+
+	if len(fields) > 0 {
+		stringArrayEnvVariable(fields, &searchRequest.Tags)
+	}
+
+	if len(fieldsOps) > 0 {
+		stringArrayEnvVariable(fieldsOps, &searchRequest.TagsCondition)
+	}
+
+	if index != "" {
+		searchRequest.Options["Index"] = index
+	}
+
+	if k8sContainer != "" {
+		searchRequest.Options[k8s.FieldContainer] = k8sContainer
+	}
+
+	if k8sNamespace != "" {
+		searchRequest.Options[k8s.FieldNamespace] = k8sNamespace
+	}
+
+	if k8sPod != "" {
+		searchRequest.Options[k8s.FieldPod] = k8sPod
+	}
+
+	if k8sPrevious {
+		searchRequest.Options[k8s.FieldPrevious] = k8sPrevious
+	}
+
+	if k8sTimestamp {
+		searchRequest.Options[k8s.OptionsTimestamp] = k8sTimestamp
+	}
+
+	if cmd != "" {
+		searchRequest.Options[local.OptionsCmd] = cmd
+	}
+
+	if template != "" {
+		searchRequest.PrinterOptions.Template.S(template)
+	}
+
 	if contextPath != "" || contextId != "" {
 		var config config.ContextConfig
 		if err := ty.ReadJsonFile(contextPath, &config); err != nil {
@@ -82,24 +152,17 @@ func resolveSearch() (client.LogSearchResult, error) {
 			return nil, err
 		}
 
-		sr, po, err := searchFactory.GetSearchResult(contextId)
-
-		// TODO: this is a bad way to pass down this value
-		outputter.Options = po
+		sr, err := searchFactory.GetSearchResult(contextId, inherits, searchRequest)
 
 		return sr, err
+	} else {
+		if len(inherits) > 0 {
+			return nil, errors.New("--inherits is only when using --config")
+		}
 	}
 
 	var err error
 	var system string
-
-	if refresh && refreshOptions.Duration == "" {
-		refreshOptions.Duration = "5s"
-	}
-
-	if !refresh && refreshOptions.Duration != "" {
-		refresh = true
-	}
 
 	if target.Endpoint != "" {
 		system = "opensearch"
@@ -121,49 +184,24 @@ func resolveSearch() (client.LogSearchResult, error) {
         `)
 	}
 
-	searchRequest := client.LogSearch{
-		Size:          size,
-		Range:         client.SearchRange{Lte: to, Gte: from, Last: last},
-		Tags:          ty.MS{},
-		TagsCondition: ty.MS{},
-		Refresh:       refreshOptions,
-		Options:       ty.MI{},
-		TagExtraction: client.TagExtraction{
-			Regex: regex,
-		},
-	}
-
-	stringArrayEnvVariable(fields, &searchRequest.Tags)
-	stringArrayEnvVariable(fieldsOps, &searchRequest.TagsCondition)
-
 	var logClient client.LogClient
 
 	if system == "opensearch" {
-		searchRequest.Options["Index"] = index
 
 		logClient = opensearch.GetClient(target)
 	} else if system == "k8s" {
-
-		searchRequest.Options[k8s.FieldContainer] = k8sContainer
-		searchRequest.Options[k8s.FieldNamespace] = k8sNamespace
-		searchRequest.Options[k8s.FieldPod] = k8sPod
-		searchRequest.Options[k8s.FieldPrevious] = k8sPrevious
-		searchRequest.Options[k8s.OptionsTimestamp] = k8sTimestamp
 
 		logClient, err = k8s.GetLogClient(k8s.K8sLogClientOptions{})
 		if err != nil {
 			return nil, err
 		}
 	} else if system == "ssh" {
-
-		searchRequest.Options[ssh.OptionsCmd] = cmd
-
 		logClient, err = ssh.GetLogClient(sshOptions)
 	} else {
-
-		searchRequest.Options[local.OptionsCmd] = cmd
-
 		logClient, err = local.GetLogClient()
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	searchResult, err2 := logClient.Get(searchRequest)
@@ -206,7 +244,7 @@ var queryLogCommand = &cobra.Command{
 		if err1 != nil {
 			panic(err1)
 		}
-
+		outputter := printer.PrintPrinter{}
 		outputter.Display(context.Background(), searchResult)
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
@@ -260,10 +298,10 @@ func init() {
 	// RANGE
 	queryCommand.PersistentFlags().StringVar(&from, "from", "", "Get entry gte datetime date >= from")
 	queryCommand.PersistentFlags().StringVar(&to, "to", "", "Get entry lte datetime date <= to")
-	queryCommand.PersistentFlags().StringVar(&last, "last", "15m", "Get entry in the last duration")
+	queryCommand.PersistentFlags().StringVar(&last, "last", "", "Get entry in the last duration")
 
 	// SIZE
-	queryCommand.PersistentFlags().IntVar(&size, "size", 100, "Get entry max size")
+	queryCommand.PersistentFlags().IntVar(&size, "size", 0, "Get entry max size")
 
 	// FIELD validation
 	queryCommand.PersistentFlags().StringArrayVarP(&fields, "fields", "f", []string{}, "Field for selection field=value")
@@ -276,14 +314,16 @@ func init() {
 
 	// LIVE DATA OPTIONS
 	queryLogCommand.PersistentFlags().StringVar(
-		&refreshOptions.Duration, "refresh-rate", "", "If provide refresh log at the rate provide (ex: 30s)")
+		&duration, "refresh-rate", "", "If provide refresh log at the rate provide (ex: 30s)")
 	queryLogCommand.PersistentFlags().BoolVar(&refresh, "refresh", false, "If provide activate live data")
 
 	// OUTPUT FORMATTING
 	queryLogCommand.PersistentFlags().StringVar(
-		&outputter.Options.Template,
+		&template,
 		"format",
 		"[{{.Timestamp.Format \"15:04:05\" }}][{{.Level}}] {{.Message}}", "Format for the log entry")
+
+	queryCommand.PersistentFlags().StringArrayVarP(&inherits, "inherits", "h", []string{}, "When using config , list of inherits to execute on top of the one configure for the search")
 
 	queryCommand.AddCommand(queryLogCommand)
 	queryCommand.AddCommand(queryTagCommand)

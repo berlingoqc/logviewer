@@ -14,42 +14,36 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-
 const (
-    OptionsCmd = "Cmd"
+	OptionsCmd = "Cmd"
 )
 
-
 type SSHLogClientOptions struct {
-    User string `json="user"`
-    Addr string `json="addr"`
-    
-    PrivateKey string `json="privateKey"`
+	User string `json:"user"`
+	Addr string `json:"addr"`
+
+	PrivateKey string `json:"privateKey"`
 }
-
-
 
 type sshLogClient struct {
-    conn *sshc.Client
+	conn *sshc.Client
 }
-
 
 func (lc sshLogClient) Get(search client.LogSearch) (client.LogSearchResult, error) {
 
-    cmd := search.Options.GetString(OptionsCmd)
+	cmd := search.Options.GetString(OptionsCmd)
 
+	if cmd == "" {
+		panic(errors.New("cmd is missing for sshLogClient"))
+	}
 
-    if cmd == "" {
-        panic(errors.New("cmd is missing for sshLogClient"))
-    }
-
-    session, err := lc.conn.NewSession()
+	session, err := lc.conn.NewSession()
 	if err != nil {
-        return nil, err
+		return nil, err
 	}
 
 	modes := sshc.TerminalModes{
-        sshc.ECHO:          0,     // disable echoing
+		sshc.ECHO:          0,     // disable echoing
 		sshc.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
 		sshc.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
 	}
@@ -61,63 +55,65 @@ func (lc sshLogClient) Get(search client.LogSearch) (client.LogSearchResult, err
 
 	_, err = session.StdinPipe()
 	if err != nil {
-        return nil, err
+		return nil, err
 	}
 
-    errOut, err := session.StderrPipe()
+	errOut, err := session.StderrPipe()
 
-    out, err := session.StdoutPipe()
+	out, err := session.StdoutPipe()
 	if err != nil {
-        return nil, err
+		return nil, err
 	}
 
-    go func () {
-        _, err = session.Output(cmd)
-        if err != nil {
+	go func() {
+		_, err = session.Output(cmd)
+		if err != nil {
 
-            by, _ := ioutil.ReadAll(errOut)
-            fmt.Println("Error : " + string(by))
+			by, _ := ioutil.ReadAll(errOut)
+			fmt.Println("Error : " + string(by))
 
-            panic(err)
-        }
-    }()
+			panic(err)
+		}
+	}()
 
-    scanner := bufio.NewScanner(out)
+	scanner := bufio.NewScanner(out)
 
-    return reader.GetLogResult(search, scanner, session), nil
+	return reader.GetLogResult(search, scanner, session), nil
 }
-
 
 func GetLogClient(options SSHLogClientOptions) (client.LogClient, error) {
 
-    var privateKeyFile string
-    if options.PrivateKey != "" {
-        privateKeyFile = options.PrivateKey
-    } else {
-        privateKeyFile = filepath.Join(homedir.HomeDir(), ".ssh", "id_rsa")
-    }
-
-    key, err := ioutil.ReadFile(privateKeyFile)
-    if err != nil { return nil, err }
-    signer, err := sshc.ParsePrivateKey(key)
-    if err != nil { return nil, err }
-
-    sshConfig := &sshc.ClientConfig{
-		User: options.User,
-		Auth: []sshc.AuthMethod{
-            sshc.PublicKeys(signer),
-		},
-		HostKeyCallback: sshc.HostKeyCallback(
-            func(hostname string, remote net.Addr, key sshc.PublicKey) error { 
-                return nil 
-        }),
+	var privateKeyFile string
+	if options.PrivateKey != "" {
+		privateKeyFile = options.PrivateKey
+	} else {
+		privateKeyFile = filepath.Join(homedir.HomeDir(), ".ssh", "id_rsa")
 	}
 
-    
+	key, err := ioutil.ReadFile(privateKeyFile)
+	if err != nil {
+		return nil, err
+	}
+	signer, err := sshc.ParsePrivateKey(key)
+	if err != nil {
+		return nil, err
+	}
+
+	sshConfig := &sshc.ClientConfig{
+		User: options.User,
+		Auth: []sshc.AuthMethod{
+			sshc.PublicKeys(signer),
+		},
+		HostKeyCallback: sshc.HostKeyCallback(
+			func(hostname string, remote net.Addr, key sshc.PublicKey) error {
+				return nil
+			}),
+	}
+
 	conn, err := sshc.Dial("tcp", options.Addr, sshConfig)
 	if err != nil {
 		return nil, err
 	}
 
-    return sshLogClient{conn}, nil
+	return sshLogClient{conn}, nil
 }
