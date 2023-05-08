@@ -37,16 +37,12 @@ func (osm *OpenSearchMock) Start(mockFile string) {
 		var bytes []byte
 
 		if firstResponse {
-			bytes, _ = json.Marshal(&mockRes)
 			firstResponse = false
 		} else {
-
 			requestBatchSize := rand.Intn(batchSize)
 
 			startIndex := index
 			endIndex := index + requestBatchSize
-
-			fmt.Printf(" start %d endd %d requestBatchSize %d len original hits %d \n", startIndex, endIndex, requestBatchSize, len(originalHits))
 
 			if len(originalHits) <= index+requestBatchSize {
 				endIndex = len(originalHits) - 1
@@ -55,10 +51,14 @@ func (osm *OpenSearchMock) Start(mockFile string) {
 				index = endIndex
 			}
 
+			fmt.Printf(" start %d endd %d requestBatchSize %d len original hits %d \n", startIndex, endIndex, requestBatchSize, len(originalHits))
+
 			hits := originalHits[startIndex:endIndex]
 
 			mockRes.Hits.Hits = hits
 		}
+
+		bytes, _ = json.Marshal(&mockRes)
 
 		w.Write(bytes)
 
