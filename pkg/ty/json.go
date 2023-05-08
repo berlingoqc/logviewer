@@ -19,7 +19,7 @@ func ReadJsonFile(path string, object interface{}) error {
 		return err
 	}
 
-	return json.Unmarshal([]byte(byteValue), object)
+	return json.Unmarshal(byteValue, object)
 }
 
 func ToJsonString(data any) (string, error) {
