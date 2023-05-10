@@ -19,7 +19,7 @@ type ReaderLogResult struct {
 
 	// mutex because updated by goroutine
 	entries []client.LogEntry
-	tags    client.AvailableTags
+	fields  client.AvailableFields
 
 	regexExtraction *regexp.Regexp
 }
@@ -39,14 +39,14 @@ func (lr *ReaderLogResult) parseLine(line string) bool {
 		if len(match) > 0 {
 			for i, name := range lr.regexExtraction.SubexpNames() {
 				if i != 0 && name != "" {
-					lr.tags.AddTag(name, match[i])
+					lr.fields.AddField(name, match[i])
 					entry.Fields[name] = match[i]
 				}
 			}
 		}
 	}
 
-	for k, v := range lr.search.Tags {
+	for k, v := range lr.search.Fields {
 		if vv, ok := entry.Fields[k]; ok {
 			if v != vv {
 				return false
@@ -104,8 +104,8 @@ func (lr ReaderLogResult) GetEntries(ctx context.Context) ([]client.LogEntry, ch
 	}
 }
 
-func (lr ReaderLogResult) GetTags() (client.AvailableTags, error) {
-	return lr.tags, nil
+func (lr ReaderLogResult) GetFields() (client.AvailableFields, error) {
+	return lr.fields, nil
 }
 
 func GetLogResult(
@@ -115,8 +115,8 @@ func GetLogResult(
 ) ReaderLogResult {
 
 	var regexExtraction *regexp.Regexp
-	if search.TagExtraction.Regex.Value != "" {
-		regexExtraction = regexp.MustCompile(search.TagExtraction.Regex.Value)
+	if search.FieldExtraction.Regex.Value != "" {
+		regexExtraction = regexp.MustCompile(search.FieldExtraction.Regex.Value)
 	}
 
 	result := ReaderLogResult{
@@ -124,7 +124,7 @@ func GetLogResult(
 		scanner:         scanner,
 		closer:          closer,
 		regexExtraction: regexExtraction,
-		tags:            make(client.AvailableTags),
+		fields:          make(client.AvailableFields),
 	}
 
 	return result

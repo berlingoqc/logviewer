@@ -54,7 +54,7 @@ type logSearchResult struct {
 
 	// store loaded entries
 
-	// store extracted tags
+	// store extracted fields
 }
 
 func (sr logSearchResult) GetSearch() *client.LogSearch {
@@ -70,10 +70,10 @@ func (sr logSearchResult) GetEntries(context context.Context) ([]client.LogEntry
 	return entries, c, err
 }
 
-// TODO: tags not being updated from live data
-func (sr logSearchResult) GetTags() (client.AvailableTags, error) {
+// TODO: fields not being updated from live data
+func (sr logSearchResult) GetFields() (client.AvailableFields, error) {
 
-	tags := client.AvailableTags{}
+	fields := client.AvailableFields{}
 
 	for _, h := range sr.result.Hits.Hits {
 	SOURCE:
@@ -84,20 +84,20 @@ func (sr logSearchResult) GetTags() (client.AvailableTags, error) {
 
 			// TODO handle object
 			if vString, valid := v.(string); valid {
-				if tags[k] == nil {
-					tags[k] = make([]string, 1)
-					tags[k][0] = vString
+				if fields[k] == nil {
+					fields[k] = make([]string, 1)
+					fields[k][0] = vString
 				}
-				for _, vv := range tags[k] {
+				for _, vv := range fields[k] {
 					if vv == v {
 						continue SOURCE
 					}
 				}
-				tags[k] = append(tags[k], vString)
+				fields[k] = append(fields[k], vString)
 			}
 		}
 	}
-	return tags, nil
+	return fields, nil
 }
 
 func (sr logSearchResult) parseResults() []client.LogEntry {

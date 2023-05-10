@@ -2,6 +2,7 @@ package opensearch
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
@@ -40,7 +41,9 @@ type SearchRequest struct {
 
 func GetSearchRequest(logSearch client.LogSearch) (SearchRequest, error) {
 
-	conditions := make([]Map, len(logSearch.Tags)+1)
+	log.Printf("%v", logSearch)
+
+	conditions := make([]Map, len(logSearch.Fields)+1)
 
 	index := 0
 
@@ -50,7 +53,7 @@ func GetSearchRequest(logSearch client.LogSearch) (SearchRequest, error) {
 	var err error
 
 	if logSearch.Size.Value == 0 {
-		logSearch.Size.S(0)
+		logSearch.Size.S(100)
 	}
 
 	if logSearch.Range.Lte.Value != "" {
@@ -77,9 +80,9 @@ func GetSearchRequest(logSearch client.LogSearch) (SearchRequest, error) {
 		}
 	}
 
-	for k, v := range logSearch.Tags {
+	for k, v := range logSearch.Fields {
 
-		op, b := logSearch.TagsCondition[k]
+		op, b := logSearch.FieldsCondition[k]
 		if !b || op == "" {
 			op = "match"
 		}

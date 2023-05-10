@@ -31,6 +31,9 @@ type ContextConfig struct {
 }
 
 func (cc ContextConfig) GetSearchContext(contextId string, inherits []string, logSearch client.LogSearch) (SearchContext, error) {
+	if contextId == "" {
+		return SearchContext{}, errors.New("contextId is empty , required when using config")
+	}
 	if searchContext, b := cc.Contexts[contextId]; b {
 		inherits := append(searchContext.SearchInherit, inherits...)
 		if len(inherits) > 0 {

@@ -12,7 +12,7 @@ import (
 func TestBody(t *testing.T) {
 
 	logSearch := client.LogSearch{
-		Tags: map[string]string{
+		Fields: map[string]string{
 			"instance":        "pod-1234",
 			"applicationName": "mfx.services.tsapi",
 		},

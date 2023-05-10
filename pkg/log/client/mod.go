@@ -7,9 +7,9 @@ import (
 	"github.com/berlingoqc/logexplorer/pkg/ty"
 )
 
-type AvailableTags map[string][]string
+type AvailableFields map[string][]string
 
-func (at *AvailableTags) AddTag(key, value string) string {
+func (at *AvailableFields) AddField(key, value string) string {
 	if _, ok := (*at)[key]; ok {
 		for _, v := range (*at)[key] {
 			if v == value {
@@ -36,7 +36,7 @@ type LogEntry struct {
 type LogSearchResult interface {
 	GetSearch() *LogSearch
 	GetEntries(context context.Context) ([]LogEntry, chan []LogEntry, error)
-	GetTags() (AvailableTags, error)
+	GetFields() (AvailableFields, error)
 }
 
 // Client to start a log search

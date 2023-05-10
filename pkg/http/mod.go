@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/berlingoqc/logexplorer/pkg/ty"
@@ -23,7 +24,11 @@ func (c JsonGetClient) Get(path string, queryParams ty.MS, body interface{}, res
 		return encErr
 	}
 
-	req, err := http.NewRequest("GET", c.url+path, &buf)
+	path = c.url + path
+
+	log.Printf("[GET]%s %s\n", path, buf.String())
+
+	req, err := http.NewRequest("GET", path, &buf)
 	if err != nil {
 		return err
 	}
