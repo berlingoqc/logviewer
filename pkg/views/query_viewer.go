@@ -1,51 +1,98 @@
 package views
 
 import (
+	"context"
+	"errors"
+
+	"github.com/berlingoqc/logexplorer/pkg/log/client"
 	"github.com/berlingoqc/logexplorer/pkg/log/config"
 	"github.com/berlingoqc/logexplorer/pkg/log/factory"
+	"github.com/berlingoqc/logexplorer/pkg/log/printer"
 	"github.com/rivo/tview"
 )
 
+type tviewWrapper struct {
+	app *tview.Application
+	tv  *tview.TextView
+}
+
+func (tv tviewWrapper) Display(ctx context.Context, result client.LogSearchResult) error {
+	go printer.WrapIoWritter(ctx, result, tv.tv, func() {
+		// TODO: scroll to end if we are not scroll up
+		tv.app.QueueUpdateDraw(func() {
+			tv.tv.ScrollToEnd()
+		})
+	})
+
+	return nil
+}
 
 // Return the queryBox to display one output of logs
-func getQueryBox(searchesId []string) (*tview.Grid, error) {
+func getQueryBox(app *tview.Application, searchesId []string) (*tview.Grid, map[string]tviewWrapper, error) {
 
-    newPrimitive := func(text string) tview.Primitive {
+	newPrimitive := func(text string) *tview.TextView {
 		return tview.NewTextView().
 			SetTextAlign(tview.AlignLeft).
-			SetText(text)
+			SetLabel(text).
+			SetScrollable(true)
 	}
 
-    grid := tview.NewGrid().
+	grid := tview.NewGrid().
 		SetColumns(0, 0).
 		SetBorders(true)
 
-    for i, v := range searchesId {
-        primitive := newPrimitive("log " + v)
-        grid.AddItem(primitive,0, i, 1, 1, 0, 0, false)
-    }
+	tviewWrappers := make(map[string]tviewWrapper)
 
+	for i, v := range searchesId {
 
+		primitive := newPrimitive(v)
+		grid.AddItem(primitive, 0, i, 1, 1, 0, 0, true)
+		tviewWrappers[v] = tviewWrapper{tv: primitive, app: app}
+	}
 
-
-    return grid, nil
+	return grid, tviewWrappers, nil
 }
 
-func RunQueryViewApp(config config.ContextConfig) error {
-    clientFactory, err := factory.GetLogClientFactory(config.Clients)
-    if err != nil { return err }
+func RunQueryViewApp(config config.ContextConfig, searchIds []string) error {
 
-    _, err = factory.GetLogSearchFactory(clientFactory, config)
-    if err != nil { return err }
+	app := tview.NewApplication()
 
-    searchesId := []string{"localSystem", "localSystem"}
+	clientFactory, err := factory.GetLogClientFactory(config.Clients)
+	if err != nil {
+		return err
+	}
 
-    grid, err := getQueryBox(searchesId)
-    if err != nil {
-        return err
-    }
+	if len(searchIds) == 0 {
+		return errors.New("required multiple searches for query")
+	}
 
-	if err := tview.NewApplication().SetRoot(grid, true).Run(); err != nil {
+	searchFactory, err := factory.GetLogSearchFactory(clientFactory, config)
+	if err != nil {
+		return err
+	}
+
+	grid, wrappers, err := getQueryBox(app, searchIds)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	ctx, _ = context.WithCancel(ctx)
+	//defer cancel()
+
+	for k, v := range wrappers {
+		result, err := searchFactory.GetSearchResult(k, []string{}, client.LogSearch{})
+		if err != nil {
+			return err
+		}
+
+		err = v.Display(ctx, result)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	if err := app.SetRoot(grid, true).Run(); err != nil {
 		return err
 	}
 

@@ -37,7 +37,7 @@ var (
 	template string
 
 	contextPath string
-	contextId   string
+	contextIds  []string
 
 	logger log.MyLoggerOptions
 
@@ -54,7 +54,7 @@ func init() {
 	// CONFIG
 
 	queryCommand.PersistentFlags().StringVarP(&contextPath, "config", "c", "", "Config for preconfigure context for search")
-	queryCommand.PersistentFlags().StringVarP(&contextId, "id", "i", "", "Context id to execute")
+	queryCommand.PersistentFlags().StringArrayVarP(&contextIds, "id", "i", []string{}, "Context id to execute")
 
 	// IMPL SPECIFIQUE
 

@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+const LB = "\n"
+
 func ReadJsonFile(path string, object interface{}) error {
 	jsonFile, err := os.Open(path)
 	if err != nil {

@@ -103,7 +103,10 @@ func resolveSearch() (client.LogSearchResult, error) {
 		searchRequest.PrinterOptions.Template.S(template)
 	}
 
-	if contextPath != "" || contextId != "" {
+	if len(contextIds) != 1 {
+		return nil, errors.New("-i required only exactly one element when doing a query log or query tag")
+	}
+	if contextPath != "" || contextIds[0] != "" {
 		var config config.ContextConfig
 		if err := ty.ReadJsonFile(contextPath, &config); err != nil {
 			return nil, err
@@ -119,7 +122,7 @@ func resolveSearch() (client.LogSearchResult, error) {
 			return nil, err
 		}
 
-		sr, err := searchFactory.GetSearchResult(contextId, inherits, searchRequest)
+		sr, err := searchFactory.GetSearchResult(contextIds[0], inherits, searchRequest)
 
 		return sr, err
 	} else {
@@ -227,7 +230,7 @@ var queryCommand = &cobra.Command{
 			panic(err)
 		}
 
-		if err := views.RunQueryViewApp(config); err != nil {
+		if err := views.RunQueryViewApp(config, contextIds); err != nil {
 			panic(err)
 		}
 	},
