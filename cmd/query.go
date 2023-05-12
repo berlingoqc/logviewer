@@ -154,14 +154,9 @@ func resolveSearch() (client.LogSearchResult, error) {
 	var logClient client.LogClient
 
 	if system == "opensearch" {
-
-		logClient = opensearch.GetClient(target)
+		logClient, err = opensearch.GetClient(target)
 	} else if system == "k8s" {
-
 		logClient, err = k8s.GetLogClient(k8s.K8sLogClientOptions{})
-		if err != nil {
-			return nil, err
-		}
 	} else if system == "ssh" {
 		logClient, err = ssh.GetLogClient(sshOptions)
 	} else {

@@ -1,8 +1,6 @@
 package factory
 
 import (
-	"errors"
-
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
 	"github.com/berlingoqc/logexplorer/pkg/log/config"
 )
@@ -21,12 +19,12 @@ func (sf *logSearchFactory) GetSearchResult(contextId string, inherits []string,
 		return nil, err
 	}
 
-	logClient := sf.clientsFactory.clients[searchContext.Client]
-	if logClient == nil {
-		return nil, errors.New("cant find client : " + searchContext.Client)
+	logClient, err := sf.clientsFactory.clients.Get(searchContext.Client)
+	if err != nil {
+		return nil, err
 	}
 
-	sr, err := logClient.Get(searchContext.Search)
+	sr, err := (*logClient).Get(searchContext.Search)
 
 	return sr, err
 }

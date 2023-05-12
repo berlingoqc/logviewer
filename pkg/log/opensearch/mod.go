@@ -165,9 +165,9 @@ func (sr logSearchResult) onChange(ctx context.Context) (chan []client.LogEntry,
 	return c, nil
 }
 
-func GetClient(target OpenSearchTarget) client.LogClient {
-	return kibanaClient{
-		target: target,
-		client: http.GetClient(target.Endpoint),
-	}
+func GetClient(target OpenSearchTarget) (client.LogClient, error) {
+	client := new(kibanaClient)
+	client.target = target
+	client.client = http.GetClient(target.Endpoint)
+	return client, nil
 }

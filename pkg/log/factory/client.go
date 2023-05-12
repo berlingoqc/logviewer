@@ -9,46 +9,65 @@ import (
 	"github.com/berlingoqc/logexplorer/pkg/log/local"
 	"github.com/berlingoqc/logexplorer/pkg/log/opensearch"
 	"github.com/berlingoqc/logexplorer/pkg/log/ssh"
+	"github.com/berlingoqc/logexplorer/pkg/ty"
 )
 
-type clientMaps map[string]client.LogClient
-
 type logClientFactory struct {
-	clients clientMaps
+	clients ty.LazyMap[string, client.LogClient]
 }
-
 
 func GetLogClientFactory(clients config.Clients) (*logClientFactory, error) {
 
 	logClientFactory := new(logClientFactory)
-    logClientFactory.clients = make(clientMaps)
-
-    var err error
+	logClientFactory.clients = make(ty.LazyMap[string, client.LogClient])
 
 	for k, v := range clients {
 		switch v.Type {
 		case "opensearch":
-			logClientFactory.clients[k] = opensearch.GetClient(opensearch.OpenSearchTarget{
-                Endpoint: v.Options["Endpoint"],
-            })
-        case "local":
-            if logClientFactory.clients[k], err = local.GetLogClient(); err != nil {
-                return nil, err
-            }
-        case "k8s":
-            if logClientFactory.clients[k], err = k8s.GetLogClient(k8s.K8sLogClientOptions{
-                KubeConfig: v.Options["KubeConfig"],
-            }); err != nil {
-                return nil, err
-            }
-        case "ssh":
-            if logClientFactory.clients[k], err = ssh.GetLogClient(ssh.SSHLogClientOptions{
-                User: v.Options["User"],
-                Addr: v.Options["Addr"],
-                PrivateKey: v.Options["PrivateKey"],
-            }); err != nil {
-                return nil, err
-            }
+			options := v.Options
+			logClientFactory.clients[k] = ty.GetLazy(func() (*client.LogClient, error) {
+				vv, err := opensearch.GetClient(opensearch.OpenSearchTarget{
+					Endpoint: options["Endpoint"],
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return &vv, nil
+			})
+		case "local":
+			logClientFactory.clients[k] = ty.GetLazy(func() (*client.LogClient, error) {
+				vv, err := local.GetLogClient()
+				if err != nil {
+					return nil, err
+				}
+
+				return &vv, nil
+			})
+		case "k8s":
+			logClientFactory.clients[k] = ty.GetLazy(func() (*client.LogClient, error) {
+				vv, err := k8s.GetLogClient(k8s.K8sLogClientOptions{
+					KubeConfig: v.Options["KubeConfig"],
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return &vv, nil
+			})
+		case "ssh":
+			logClientFactory.clients[k] = ty.GetLazy(func() (*client.LogClient, error) {
+				vv, err := ssh.GetLogClient(ssh.SSHLogClientOptions{
+					User:       v.Options["User"],
+					Addr:       v.Options["Addr"],
+					PrivateKey: v.Options["PrivateKey"],
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return &vv, nil
+			})
 		default:
 			return nil, errors.New("invalid type for client : " + v.Type)
 		}
