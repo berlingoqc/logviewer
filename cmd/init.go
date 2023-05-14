@@ -2,14 +2,14 @@ package cmd
 
 import (
 	"github.com/berlingoqc/logexplorer/pkg/log"
-	"github.com/berlingoqc/logexplorer/pkg/log/opensearch"
 	"github.com/berlingoqc/logexplorer/pkg/log/ssh"
 	"github.com/spf13/cobra"
 )
 
 var (
-	target opensearch.OpenSearchTarget
-	index  string
+	endpointOpensearch string
+	endpointKibana     string
+	index              string
 
 	k8sNamespace string
 	k8sPod       string
@@ -49,7 +49,6 @@ func onCommandStart(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	target = opensearch.OpenSearchTarget{}
 
 	// CONFIG
 
@@ -67,9 +66,10 @@ func init() {
 	queryCommand.PersistentFlags().StringVar(&k8sContainer, "k8s-container", "", "K8s container")
 	queryCommand.PersistentFlags().BoolVar(&k8sPrevious, "k8s-previous", false, "K8s log of previous container")
 	queryCommand.PersistentFlags().BoolVar(&k8sTimestamp, "k8s-timestamp", false, "K8s include RFC3339 timestamp")
-	// OPENSEARCH
-	queryCommand.PersistentFlags().StringVar(&target.Endpoint, "opensearch-endpoint", "", "Opensearch endpoint")
-	queryCommand.PersistentFlags().StringVar(&index, "opensearch-index", "", "Opensearch index to search")
+	// ELK
+	queryCommand.PersistentFlags().StringVar(&endpointOpensearch, "opensearch-endpoint", "", "Opensearch endpoint")
+	queryCommand.PersistentFlags().StringVar(&endpointKibana, "kibana-endpoint", "", "Kibana endpoint")
+	queryCommand.PersistentFlags().StringVar(&index, "elk-index", "", "Elk index to search")
 	// SSH
 	queryCommand.PersistentFlags().StringVar(&sshOptions.Addr, "ssh-addr", "", "SSH address and port localhost:22")
 	queryCommand.PersistentFlags().StringVar(&sshOptions.User, "ssh-user", "", "SSH user")

@@ -5,9 +5,10 @@ import (
 
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
 	"github.com/berlingoqc/logexplorer/pkg/log/config"
+	"github.com/berlingoqc/logexplorer/pkg/log/elk/kibana"
+	"github.com/berlingoqc/logexplorer/pkg/log/elk/opensearch"
 	"github.com/berlingoqc/logexplorer/pkg/log/k8s"
 	"github.com/berlingoqc/logexplorer/pkg/log/local"
-	"github.com/berlingoqc/logexplorer/pkg/log/opensearch"
 	"github.com/berlingoqc/logexplorer/pkg/log/ssh"
 	"github.com/berlingoqc/logexplorer/pkg/ty"
 )
@@ -29,6 +30,16 @@ func GetLogClientFactory(clients config.Clients) (*logClientFactory, error) {
 				vv, err := opensearch.GetClient(opensearch.OpenSearchTarget{
 					Endpoint: options["Endpoint"],
 				})
+				if err != nil {
+					return nil, err
+				}
+
+				return &vv, nil
+			})
+		case "kibana":
+			options := v.Options
+			logClientFactory.clients[k] = ty.GetLazy(func() (*client.LogClient, error) {
+				vv, err := kibana.GetClient(kibana.KibanaTarget{Endpoint: options["Endpoint"]})
 				if err != nil {
 					return nil, err
 				}

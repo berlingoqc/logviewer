@@ -11,6 +11,13 @@ type MS map[string]string
 
 const Format = time.RFC3339
 
+func (mi MI) GetOr(key string, def interface{}) interface{} {
+	if v, b := mi[key]; b {
+		return v
+	}
+	return def
+}
+
 func (mi MI) GetString(key string) string {
 	if v, b := mi[key]; b {
 		return v.(string)

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/berlingoqc/logexplorer/pkg/log/opensearch"
+	"github.com/berlingoqc/logexplorer/pkg/log/elk/opensearch"
 	"github.com/berlingoqc/logexplorer/pkg/ty"
 )
 

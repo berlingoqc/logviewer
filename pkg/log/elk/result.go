@@ -1,67 +1,51 @@
-package opensearch
+package elk
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
-	"github.com/berlingoqc/logexplorer/pkg/http"
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
 	"github.com/berlingoqc/logexplorer/pkg/ty"
 )
 
-type OpenSearchTarget struct {
-	Endpoint string `json:"endpoint"`
+type Hit struct {
+	Index  string `json:"_index"`
+	Type   string `json:"_type"`
+	Id     string `json:"_id"`
+	Score  int32  `json:"_score"`
+	Source ty.MI  `json:"_source"`
 }
 
-type openSearchClient struct {
-	target OpenSearchTarget
-	client http.JsonGetClient
+type Hits struct {
+	// total
+	// max_score
+	Hits []Hit `json:"hits"`
 }
 
-func (kc openSearchClient) Get(search client.LogSearch) (client.LogSearchResult, error) {
-	var searchResult SearchResult
-
-	index := search.Options.GetString("Index")
-
-	if index == "" {
-		return nil, errors.New("index is not provided for opensearch log client")
-	}
-
-	request, err := GetSearchRequest(search)
-	if err != nil {
-		return nil, err
-	}
-
-	err = kc.client.Get(fmt.Sprintf("/%s/_search", index), ty.MS{}, &request, &searchResult)
-	if err != nil {
-		return nil, err
-	}
-
-	return logSearchResult{
-		client: &kc,
-		result: searchResult,
-		search: search,
-	}, nil
-}
-
-type logSearchResult struct {
-	client *openSearchClient
-
+type ElkSearchResult struct {
+	client client.LogClient
 	search client.LogSearch
-	result SearchResult
+	result Hits
 
 	// store loaded entries
 
 	// store extracted fields
 }
 
-func (sr logSearchResult) GetSearch() *client.LogSearch {
+func GetSearchResult(client client.LogClient, search client.LogSearch, hits Hits) ElkSearchResult {
+	return ElkSearchResult{
+		client: client,
+		search: search,
+		result: hits,
+	}
+}
+
+func (sr ElkSearchResult) GetSearch() *client.LogSearch {
 	return &sr.search
 }
 
-func (sr logSearchResult) GetEntries(context context.Context) ([]client.LogEntry, chan []client.LogEntry, error) {
+func (sr ElkSearchResult) GetEntries(context context.Context) ([]client.LogEntry, chan []client.LogEntry, error) {
 
 	entries := sr.parseResults()
 
@@ -71,11 +55,11 @@ func (sr logSearchResult) GetEntries(context context.Context) ([]client.LogEntry
 }
 
 // TODO: fields not being updated from live data
-func (sr logSearchResult) GetFields() (client.AvailableFields, error) {
+func (sr ElkSearchResult) GetFields() (client.AvailableFields, error) {
 
 	fields := client.AvailableFields{}
 
-	for _, h := range sr.result.Hits.Hits {
+	for _, h := range sr.result.Hits {
 	SOURCE:
 		for k, v := range h.Source {
 			if k == "message" || k == "@timestamp" {
@@ -100,12 +84,12 @@ func (sr logSearchResult) GetFields() (client.AvailableFields, error) {
 	return fields, nil
 }
 
-func (sr logSearchResult) parseResults() []client.LogEntry {
-	size := len(sr.result.Hits.Hits)
+func (sr ElkSearchResult) parseResults() []client.LogEntry {
+	size := len(sr.result.Hits)
 
 	entries := make([]client.LogEntry, size)
 
-	for i, h := range sr.result.Hits.Hits {
+	for i, h := range sr.result.Hits {
 		message, b := h.Source["message"].(string)
 		if !b {
 			fmt.Printf("message is not string : %+v \n", h.Source["message"])
@@ -132,7 +116,7 @@ func (sr logSearchResult) parseResults() []client.LogEntry {
 	return entries
 }
 
-func (sr logSearchResult) onChange(ctx context.Context) (chan []client.LogEntry, error) {
+func (sr ElkSearchResult) onChange(ctx context.Context) (chan []client.LogEntry, error) {
 	if sr.search.Refresh.Duration.Value == "" {
 		return nil, nil
 	}
@@ -154,7 +138,7 @@ func (sr logSearchResult) onChange(ctx context.Context) (chan []client.LogEntry,
 					if err1 != nil {
 						fmt.Println("failed to get new logs " + err1.Error())
 					}
-					c <- result.(logSearchResult).parseResults()
+					c <- result.(ElkSearchResult).parseResults()
 				}
 			case <-ctx.Done():
 				close(c)
@@ -163,11 +147,4 @@ func (sr logSearchResult) onChange(ctx context.Context) (chan []client.LogEntry,
 		}
 	}()
 	return c, nil
-}
-
-func GetClient(target OpenSearchTarget) (client.LogClient, error) {
-	client := new(openSearchClient)
-	client.target = target
-	client.client = http.GetClient(target.Endpoint)
-	return client, nil
 }

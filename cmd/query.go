@@ -10,10 +10,11 @@ import (
 
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
 	"github.com/berlingoqc/logexplorer/pkg/log/config"
+	"github.com/berlingoqc/logexplorer/pkg/log/elk/kibana"
+	"github.com/berlingoqc/logexplorer/pkg/log/elk/opensearch"
 	"github.com/berlingoqc/logexplorer/pkg/log/factory"
 	"github.com/berlingoqc/logexplorer/pkg/log/k8s"
 	"github.com/berlingoqc/logexplorer/pkg/log/local"
-	"github.com/berlingoqc/logexplorer/pkg/log/opensearch"
 	"github.com/berlingoqc/logexplorer/pkg/log/printer"
 	"github.com/berlingoqc/logexplorer/pkg/log/ssh"
 	"github.com/berlingoqc/logexplorer/pkg/ty"
@@ -134,8 +135,10 @@ func resolveSearch() (client.LogSearchResult, error) {
 	var err error
 	var system string
 
-	if target.Endpoint != "" {
+	if endpointOpensearch != "" {
 		system = "opensearch"
+	} else if endpointKibana != "" {
+		system = "kibana"
 	} else if k8sNamespace != "" {
 		system = "k8s"
 	} else if cmd != "" {
@@ -147,6 +150,7 @@ func resolveSearch() (client.LogSearchResult, error) {
 	} else {
 		return nil, errors.New(`
         failed to select a system for logging provide one of the following:
+			* --kibana-endpoint
             * --openseach-endpoint
             * --k8s-namespace
             * --ssh-addr
@@ -157,7 +161,9 @@ func resolveSearch() (client.LogSearchResult, error) {
 	var logClient client.LogClient
 
 	if system == "opensearch" {
-		logClient, err = opensearch.GetClient(target)
+		logClient, err = opensearch.GetClient(opensearch.OpenSearchTarget{Endpoint: endpointOpensearch})
+	} else if system == "kibana" {
+		logClient, err = kibana.GetClient(kibana.KibanaTarget{Endpoint: endpointKibana})
 	} else if system == "k8s" {
 		logClient, err = k8s.GetLogClient(k8s.K8sLogClientOptions{})
 	} else if system == "ssh" {
