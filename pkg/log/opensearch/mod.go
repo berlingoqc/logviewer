@@ -15,12 +15,12 @@ type OpenSearchTarget struct {
 	Endpoint string `json:"endpoint"`
 }
 
-type kibanaClient struct {
+type openSearchClient struct {
 	target OpenSearchTarget
 	client http.JsonGetClient
 }
 
-func (kc kibanaClient) Get(search client.LogSearch) (client.LogSearchResult, error) {
+func (kc openSearchClient) Get(search client.LogSearch) (client.LogSearchResult, error) {
 	var searchResult SearchResult
 
 	index := search.Options.GetString("Index")
@@ -47,7 +47,7 @@ func (kc kibanaClient) Get(search client.LogSearch) (client.LogSearchResult, err
 }
 
 type logSearchResult struct {
-	client *kibanaClient
+	client *openSearchClient
 
 	search client.LogSearch
 	result SearchResult
@@ -166,7 +166,7 @@ func (sr logSearchResult) onChange(ctx context.Context) (chan []client.LogEntry,
 }
 
 func GetClient(target OpenSearchTarget) (client.LogClient, error) {
-	client := new(kibanaClient)
+	client := new(openSearchClient)
 	client.target = target
 	client.client = http.GetClient(target.Endpoint)
 	return client, nil

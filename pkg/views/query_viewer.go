@@ -8,7 +8,13 @@ import (
 	"github.com/berlingoqc/logexplorer/pkg/log/config"
 	"github.com/berlingoqc/logexplorer/pkg/log/factory"
 	"github.com/berlingoqc/logexplorer/pkg/log/printer"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+)
+
+const (
+	notSelectedColor = tcell.ColorGrey
+	selectedColor    = tcell.ColorGreen
 )
 
 type tviewWrapper struct {
@@ -27,26 +33,45 @@ func (tv tviewWrapper) Display(ctx context.Context, result client.LogSearchResul
 	return nil
 }
 
+func createLogTextView(app *tview.Application, parent *tview.Grid, name string) *tview.TextView {
+	tv := tview.NewTextView().
+		SetTextAlign(tview.AlignLeft).
+		SetScrollable(true)
+
+	tv.SetBorder(true)
+	tv.SetBorderColor(notSelectedColor)
+	tv.SetTitle(name)
+	/*
+		tv.SetMouseCapture(func(action tview.MouseAction, event *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse) {
+			if action == tview.Mouse {
+				log.Println("focusing " + tv.GetTitle())
+				app.SetFocus(tv)
+				tv.SetBorderColor(selectedColor)
+				return action, nil
+			}
+			return action, event
+		})
+		tv.SetBlurFunc(func() {
+			// hide focus border
+			log.Println("blurring " + tv.GetTitle())
+			tv.SetBorderColor(notSelectedColor)
+		})*/
+
+	return tv
+}
+
 // Return the queryBox to display one output of logs
 func getQueryBox(app *tview.Application, searchesId []string) (*tview.Grid, map[string]tviewWrapper, error) {
 
-	newPrimitive := func(text string) *tview.TextView {
-		return tview.NewTextView().
-			SetTextAlign(tview.AlignLeft).
-			SetLabel(text).
-			SetScrollable(true)
-	}
-
 	grid := tview.NewGrid().
 		SetColumns(0, 0).
-		SetBorders(true)
+		SetBorders(false)
 
 	tviewWrappers := make(map[string]tviewWrapper)
 
 	for i, v := range searchesId {
-
-		primitive := newPrimitive(v)
-		grid.AddItem(primitive, 0, i, 1, 1, 0, 0, true)
+		primitive := createLogTextView(app, grid, v)
+		grid.AddItem(primitive, 0, i, 1, 1, 0, 0, false)
 		tviewWrappers[v] = tviewWrapper{tv: primitive, app: app}
 	}
 
@@ -55,7 +80,7 @@ func getQueryBox(app *tview.Application, searchesId []string) (*tview.Grid, map[
 
 func RunQueryViewApp(config config.ContextConfig, searchIds []string) error {
 
-	app := tview.NewApplication()
+	app := tview.NewApplication().EnableMouse(true)
 
 	clientFactory, err := factory.GetLogClientFactory(config.Clients)
 	if err != nil {

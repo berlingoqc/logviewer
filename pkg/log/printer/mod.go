@@ -3,11 +3,9 @@ package printer
 import (
 	"context"
 	"io"
-	"log"
 	"text/template"
 
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
-	"github.com/berlingoqc/logexplorer/pkg/ty"
 )
 
 type LogPrinter interface {
@@ -46,8 +44,6 @@ func WrapIoWritter(ctx context.Context, result client.LogSearchResult, writer io
 
 	if newEntriesChannel != nil {
 
-		log.Println("new entrie channel activated")
-
 		/*
 			c := make(chan os.Signal, 1)
 			signal.Notify(c, os.Interrupt)
@@ -64,7 +60,6 @@ func WrapIoWritter(ctx context.Context, result client.LogSearchResult, writer io
 			update()
 
 			for entries := range newEntriesChannel {
-				log.Printf("new entrie %d"+ty.LB, len(entries))
 				if len(entries) > 0 {
 					for _, entry := range entries {
 						template.Execute(writer, entry)
