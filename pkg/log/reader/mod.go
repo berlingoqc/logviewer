@@ -19,7 +19,7 @@ type ReaderLogResult struct {
 
 	// mutex because updated by goroutine
 	entries []client.LogEntry
-	fields  client.AvailableFields
+	fields  ty.UniSet[string]
 
 	regexExtraction *regexp.Regexp
 }
@@ -39,7 +39,7 @@ func (lr *ReaderLogResult) parseLine(line string) bool {
 		if len(match) > 0 {
 			for i, name := range lr.regexExtraction.SubexpNames() {
 				if i != 0 && name != "" {
-					lr.fields.AddField(name, match[i])
+					lr.fields.Add(name, match[i])
 					entry.Fields[name] = match[i]
 				}
 			}
@@ -104,7 +104,7 @@ func (lr ReaderLogResult) GetEntries(ctx context.Context) ([]client.LogEntry, ch
 	}
 }
 
-func (lr ReaderLogResult) GetFields() (client.AvailableFields, error) {
+func (lr ReaderLogResult) GetFields() (ty.UniSet[string], error) {
 	return lr.fields, nil
 }
 
@@ -124,7 +124,7 @@ func GetLogResult(
 		scanner:         scanner,
 		closer:          closer,
 		regexExtraction: regexExtraction,
-		fields:          make(client.AvailableFields),
+		fields:          make(ty.UniSet[string]),
 	}
 
 	return result

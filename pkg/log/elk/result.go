@@ -3,6 +3,7 @@ package elk
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/berlingoqc/logexplorer/pkg/log/client"
@@ -54,31 +55,30 @@ func (sr ElkSearchResult) GetEntries(context context.Context) ([]client.LogEntry
 	return entries, c, err
 }
 
-// TODO: fields not being updated from live data
-func (sr ElkSearchResult) GetFields() (client.AvailableFields, error) {
+func addField(k string, v interface{}, fields *ty.UniSet[string]) {
+	switch value := v.(type) {
+	case string:
+		fields.Add(k, value)
+	case map[string]interface{}:
+		for kk, vv := range value {
+			recKey := k + "." + kk
+			addField(recKey, vv, fields)
+		}
+	default:
+		log.Println("invalid type for field " + k)
+	}
+}
 
-	fields := client.AvailableFields{}
+func (sr ElkSearchResult) GetFields() (ty.UniSet[string], error) {
+
+	fields := ty.UniSet[string]{}
 
 	for _, h := range sr.result.Hits {
-	SOURCE:
 		for k, v := range h.Source {
 			if k == "message" || k == "@timestamp" {
 				continue
 			}
-
-			// TODO handle object
-			if vString, valid := v.(string); valid {
-				if fields[k] == nil {
-					fields[k] = make([]string, 1)
-					fields[k][0] = vString
-				}
-				for _, vv := range fields[k] {
-					if vv == v {
-						continue SOURCE
-					}
-				}
-				fields[k] = append(fields[k], vString)
-			}
+			addField(k, v, &fields)
 		}
 	}
 	return fields, nil
