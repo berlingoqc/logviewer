@@ -8,17 +8,17 @@ import (
 	"os/signal"
 	"strings"
 
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
-	"github.com/berlingoqc/logexplorer/pkg/log/config"
-	"github.com/berlingoqc/logexplorer/pkg/log/elk/kibana"
-	"github.com/berlingoqc/logexplorer/pkg/log/elk/opensearch"
-	"github.com/berlingoqc/logexplorer/pkg/log/factory"
-	"github.com/berlingoqc/logexplorer/pkg/log/k8s"
-	"github.com/berlingoqc/logexplorer/pkg/log/local"
-	"github.com/berlingoqc/logexplorer/pkg/log/printer"
-	"github.com/berlingoqc/logexplorer/pkg/log/ssh"
-	"github.com/berlingoqc/logexplorer/pkg/ty"
-	"github.com/berlingoqc/logexplorer/pkg/views"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/log/config"
+	"github.com/berlingoqc/logviewer/pkg/log/elk/kibana"
+	"github.com/berlingoqc/logviewer/pkg/log/elk/opensearch"
+	"github.com/berlingoqc/logviewer/pkg/log/factory"
+	"github.com/berlingoqc/logviewer/pkg/log/k8s"
+	"github.com/berlingoqc/logviewer/pkg/log/local"
+	"github.com/berlingoqc/logviewer/pkg/log/printer"
+	"github.com/berlingoqc/logviewer/pkg/log/ssh"
+	"github.com/berlingoqc/logviewer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/views"
 
 	"github.com/spf13/cobra"
 )
@@ -104,10 +104,10 @@ func resolveSearch() (client.LogSearchResult, error) {
 		searchRequest.PrinterOptions.Template.S(template)
 	}
 
-	if len(contextIds) != 1 {
-		return nil, errors.New("-i required only exactly one element when doing a query log or query tag")
-	}
-	if contextPath != "" || contextIds[0] != "" {
+	if contextPath != "" {
+		if len(contextIds) != 1 {
+			return nil, errors.New("-i required only exactly one element when doing a query log or query tag")
+		}
 		var config config.ContextConfig
 		if err := ty.ReadJsonFile(contextPath, &config); err != nil {
 			return nil, err
@@ -195,7 +195,7 @@ var queryFieldCommand = &cobra.Command{
 			panic(err1)
 		}
 		searchResult.GetEntries(context.Background())
-		fields, _ := searchResult.GetFields()
+		fields, _, _ := searchResult.GetFields()
 
 		for k, b := range fields {
 			fmt.Printf("%s \n", k)

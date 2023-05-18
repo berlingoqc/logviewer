@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/berlingoqc/logexplorer/pkg/log/elk/opensearch"
-	"github.com/berlingoqc/logexplorer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/log/elk/opensearch"
+	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
 type OpenSearchMock struct {

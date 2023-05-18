@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/berlingoqc/logexplorer/pkg/log"
-	"github.com/berlingoqc/logexplorer/pkg/log/ssh"
+	"github.com/berlingoqc/logviewer/pkg/log"
+	"github.com/berlingoqc/logviewer/pkg/log/ssh"
 	"github.com/spf13/cobra"
 )
 

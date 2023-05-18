@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	"github.com/berlingoqc/logexplorer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/ty"
 	"github.com/stretchr/testify/assert"
 )
 

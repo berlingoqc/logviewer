@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
 )
 
 func formatDate(layout string, t time.Time) string {

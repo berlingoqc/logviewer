@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
-	"github.com/berlingoqc/logexplorer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
 type Hit struct {
@@ -29,6 +29,7 @@ type ElkSearchResult struct {
 	search client.LogSearch
 	result Hits
 
+	entriesChan chan ty.UniSet[string]
 	// store loaded entries
 
 	// store extracted fields
@@ -69,7 +70,7 @@ func addField(k string, v interface{}, fields *ty.UniSet[string]) {
 	}
 }
 
-func (sr ElkSearchResult) GetFields() (ty.UniSet[string], error) {
+func (sr ElkSearchResult) GetFields() (ty.UniSet[string], chan ty.UniSet[string], error) {
 
 	fields := ty.UniSet[string]{}
 
@@ -81,13 +82,15 @@ func (sr ElkSearchResult) GetFields() (ty.UniSet[string], error) {
 			addField(k, v, &fields)
 		}
 	}
-	return fields, nil
+	return fields, nil, nil
 }
 
 func (sr ElkSearchResult) parseResults() []client.LogEntry {
 	size := len(sr.result.Hits)
 
 	entries := make([]client.LogEntry, size)
+
+	log.Printf("receive %d for %s"+ty.LB, len(entries), sr.search.Options.GetString("Index"))
 
 	for i, h := range sr.result.Hits {
 		message, b := h.Source["message"].(string)

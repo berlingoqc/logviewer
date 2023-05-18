@@ -1,7 +1,16 @@
-FROM scratch
+FROM golang
+
+WORKDIR /app
+
+COPY main.go .
+COPY go.* ./
+ADD pkg ./pkg
+ADD cmd ./cmd
+RUN go build -o logviewer
+
+FROM busybox:glibc
 
 LABEL org.opencontainers.image.source https://github.com/berlingoqc/logviewer
 
-COPY ./build/logviewer-linux-amd64 /usr/bin/logviewer
-
-ENTRYPOINT ["/usr/bin/logviewer"]
+COPY --from=0 /app/logviewer /logviewer
+ENTRYPOINT ["/logviewer"]

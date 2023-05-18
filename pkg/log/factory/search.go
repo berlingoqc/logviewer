@@ -1,8 +1,8 @@
 package factory
 
 import (
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
-	"github.com/berlingoqc/logexplorer/pkg/log/config"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/log/config"
 )
 
 type logSearchFactory struct {

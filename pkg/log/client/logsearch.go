@@ -1,6 +1,6 @@
 package client
 
-import "github.com/berlingoqc/logexplorer/pkg/ty"
+import "github.com/berlingoqc/logviewer/pkg/ty"
 
 type SearchRange struct {
 	Lte  ty.Opt[string] `json:"lte"`

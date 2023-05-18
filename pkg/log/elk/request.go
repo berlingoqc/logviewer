@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
-	"github.com/berlingoqc/logexplorer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
 func GetDateRange(search client.LogSearch) (string, string, error) {

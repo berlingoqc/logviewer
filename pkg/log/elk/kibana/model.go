@@ -1,8 +1,8 @@
 package kibana
 
 import (
-	"github.com/berlingoqc/logexplorer/pkg/log/elk"
-	"github.com/berlingoqc/logexplorer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/log/elk"
+	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
 type Body struct {

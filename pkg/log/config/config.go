@@ -3,8 +3,8 @@ package config
 import (
 	"errors"
 
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
-	"github.com/berlingoqc/logexplorer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
 type Client struct {

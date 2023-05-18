@@ -1,22 +1,22 @@
-module github.com/berlingoqc/logexplorer
+module github.com/berlingoqc/logviewer
 
 go 1.19
 
 require (
+	github.com/gdamore/tcell/v2 v2.6.0
 	github.com/rivo/tview v0.0.0-20230406072732-e22ce9588bb4
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.8.0
-	k8s.io/api v0.27.1
-	k8s.io/apimachinery v0.27.1
-	k8s.io/client-go v0.27.1
+	k8s.io/api v0.25.10
+	k8s.io/apimachinery v0.25.10
+	k8s.io/client-go v0.25.10
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
 	github.com/gdamore/encoding v1.0.0 // indirect
-	github.com/gdamore/tcell/v2 v2.6.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.1 // indirect

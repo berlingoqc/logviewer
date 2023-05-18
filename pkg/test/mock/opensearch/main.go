@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/berlingoqc/logexplorer/pkg/test/mock"
+	"github.com/berlingoqc/logviewer/pkg/test/mock"
 )
 
 func main() {

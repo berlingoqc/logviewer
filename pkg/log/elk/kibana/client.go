@@ -3,10 +3,10 @@ package kibana
 import (
 	"errors"
 
-	"github.com/berlingoqc/logexplorer/pkg/http"
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
-	"github.com/berlingoqc/logexplorer/pkg/log/elk"
-	"github.com/berlingoqc/logexplorer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/http"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/log/elk"
+	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
 type KibanaTarget struct {

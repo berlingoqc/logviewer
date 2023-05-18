@@ -3,14 +3,14 @@ package factory
 import (
 	"errors"
 
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
-	"github.com/berlingoqc/logexplorer/pkg/log/config"
-	"github.com/berlingoqc/logexplorer/pkg/log/elk/kibana"
-	"github.com/berlingoqc/logexplorer/pkg/log/elk/opensearch"
-	"github.com/berlingoqc/logexplorer/pkg/log/k8s"
-	"github.com/berlingoqc/logexplorer/pkg/log/local"
-	"github.com/berlingoqc/logexplorer/pkg/log/ssh"
-	"github.com/berlingoqc/logexplorer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/log/config"
+	"github.com/berlingoqc/logviewer/pkg/log/elk/kibana"
+	"github.com/berlingoqc/logviewer/pkg/log/elk/opensearch"
+	"github.com/berlingoqc/logviewer/pkg/log/k8s"
+	"github.com/berlingoqc/logviewer/pkg/log/local"
+	"github.com/berlingoqc/logviewer/pkg/log/ssh"
+	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
 type logClientFactory struct {

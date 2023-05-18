@@ -19,7 +19,7 @@ function build() {
 
         mkdir -p $WD
 
-        go build -ldflags "-X github.com/berlingoqc/logexplorer/cmd.sha1ver=${VERSION}" \
+        go build -ldflags "-X github.com/berlingoqc/logviewer/cmd.sha1ver=${VERSION}" \
                 -o ${WD}/logviewer-${GOOS}-${GOARCH}
 }
 

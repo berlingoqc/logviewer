@@ -5,7 +5,7 @@ import (
 	"io"
 	"text/template"
 
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
 )
 
 type LogPrinter interface {

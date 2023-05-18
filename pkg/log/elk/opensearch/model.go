@@ -1,8 +1,8 @@
 package opensearch
 
 import (
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
-	"github.com/berlingoqc/logexplorer/pkg/log/elk"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/log/elk"
 )
 
 type SearchResult struct {

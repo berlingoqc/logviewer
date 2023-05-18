@@ -3,11 +3,12 @@ package views
 import (
 	"context"
 	"errors"
+	"log"
 
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
-	"github.com/berlingoqc/logexplorer/pkg/log/config"
-	"github.com/berlingoqc/logexplorer/pkg/log/factory"
-	"github.com/berlingoqc/logexplorer/pkg/log/printer"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/log/config"
+	"github.com/berlingoqc/logviewer/pkg/log/factory"
+	"github.com/berlingoqc/logviewer/pkg/log/printer"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -18,8 +19,11 @@ const (
 )
 
 type tviewWrapper struct {
-	app *tview.Application
-	tv  *tview.TextView
+	app    *tview.Application
+	parent *tview.Flex
+	tv     *tview.TextView
+	fields *tview.Flex
+	result client.LogSearchResult
 }
 
 func (tv tviewWrapper) Display(ctx context.Context, result client.LogSearchResult) error {
@@ -33,7 +37,9 @@ func (tv tviewWrapper) Display(ctx context.Context, result client.LogSearchResul
 	return nil
 }
 
-func createLogTextView(app *tview.Application, parent *tview.Grid, name string) *tview.TextView {
+func createLogTextView(app *tview.Application, name string) *tviewWrapper {
+	parentFlex := tview.NewFlex().SetDirection(tview.FlexColumn)
+
 	tv := tview.NewTextView().
 		SetTextAlign(tview.AlignLeft).
 		SetScrollable(true)
@@ -41,41 +47,71 @@ func createLogTextView(app *tview.Application, parent *tview.Grid, name string) 
 	tv.SetBorder(true)
 	tv.SetBorderColor(notSelectedColor)
 	tv.SetTitle(name)
-	/*
-		tv.SetMouseCapture(func(action tview.MouseAction, event *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse) {
-			if action == tview.Mouse {
-				log.Println("focusing " + tv.GetTitle())
-				app.SetFocus(tv)
-				tv.SetBorderColor(selectedColor)
-				return action, nil
-			}
-			return action, event
-		})
-		tv.SetBlurFunc(func() {
-			// hide focus border
-			log.Println("blurring " + tv.GetTitle())
-			tv.SetBorderColor(notSelectedColor)
-		})*/
 
-	return tv
+	parentFlex.AddItem(tv, 0, 100, false)
+
+	wrapper := new(tviewWrapper)
+	wrapper.app = app
+	wrapper.tv = tv
+	wrapper.parent = parentFlex
+
+	parentFlex.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyCtrlB {
+			if wrapper.fields == nil {
+				flexFields := tview.NewFlex().SetDirection(tview.FlexRow)
+
+				fields, _, err := wrapper.result.GetFields()
+				if err != nil {
+					log.Println(err.Error())
+					return event
+				}
+				for k, _ := range fields {
+
+					listPrimitive := tview.NewList()
+					listPrimitive.AddItem(k, "", -1, func() {
+						log.Println("funny mitch")
+					})
+
+					flexFields.AddItem(listPrimitive, 0, 1, false)
+
+					/*
+						valuesList := tview.NewList()
+						for _, v := range values {
+							valuesList = valuesList.AddItem(v, "", rune(0), func() {})
+						}
+					*/
+				}
+
+				wrapper.fields = flexFields
+				parentFlex.AddItem(wrapper.fields, 0, 40, true)
+			} else {
+				wrapper.parent.RemoveItem(wrapper.fields)
+				wrapper.fields = nil
+			}
+			return nil
+		}
+		return event
+	})
+
+	return wrapper
 }
 
 // Return the queryBox to display one output of logs
-func getQueryBox(app *tview.Application, searchesId []string) (*tview.Grid, map[string]tviewWrapper, error) {
+func getQueryBox(app *tview.Application, searchesId []string) (*tview.Flex, map[string]*tviewWrapper, error) {
 
-	grid := tview.NewGrid().
-		SetColumns(0, 0).
-		SetBorders(false)
+	flex := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	tviewWrappers := make(map[string]tviewWrapper)
+	tviewWrappers := make(map[string]*tviewWrapper)
 
-	for i, v := range searchesId {
-		primitive := createLogTextView(app, grid, v)
-		grid.AddItem(primitive, 0, i, 1, 1, 0, 0, false)
-		tviewWrappers[v] = tviewWrapper{tv: primitive, app: app}
+	elementProportion := 100 / len(searchesId)
+
+	for _, v := range searchesId {
+		wrapper := createLogTextView(app, v)
+		flex.AddItem(wrapper.parent, 0, elementProportion, false)
+		tviewWrappers[v] = wrapper
 	}
 
-	return grid, tviewWrappers, nil
+	return flex, tviewWrappers, nil
 }
 
 func RunQueryViewApp(config config.ContextConfig, searchIds []string) error {
@@ -107,6 +143,7 @@ func RunQueryViewApp(config config.ContextConfig, searchIds []string) error {
 
 	for k, v := range wrappers {
 		result, err := searchFactory.GetSearchResult(k, []string{}, client.LogSearch{})
+		v.result = result
 		if err != nil {
 			return err
 		}

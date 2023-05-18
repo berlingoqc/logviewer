@@ -6,8 +6,8 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/berlingoqc/logexplorer/pkg/log/client"
-	"github.com/berlingoqc/logexplorer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/log/client"
+	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
 const maxBatchSize = 10
@@ -104,8 +104,8 @@ func (lr ReaderLogResult) GetEntries(ctx context.Context) ([]client.LogEntry, ch
 	}
 }
 
-func (lr ReaderLogResult) GetFields() (ty.UniSet[string], error) {
-	return lr.fields, nil
+func (lr ReaderLogResult) GetFields() (ty.UniSet[string], chan ty.UniSet[string], error) {
+	return lr.fields, nil, nil
 }
 
 func GetLogResult(

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/berlingoqc/logexplorer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
 type LogEntry struct {
@@ -20,7 +20,7 @@ type LogEntry struct {
 type LogSearchResult interface {
 	GetSearch() *LogSearch
 	GetEntries(context context.Context) ([]LogEntry, chan []LogEntry, error)
-	GetFields() (ty.UniSet[string], error)
+	GetFields() (ty.UniSet[string], chan ty.UniSet[string], error)
 }
 
 // Client to start a log search

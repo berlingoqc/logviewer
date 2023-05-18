@@ -9,7 +9,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/berlingoqc/logexplorer/pkg/ty"
+	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
 type JsonPostClient struct {
