@@ -13,7 +13,7 @@ import (
 const maxBatchSize = 10
 
 type ReaderLogResult struct {
-	search  client.LogSearch
+	search  *client.LogSearch
 	scanner *bufio.Scanner
 	closer  io.Closer
 
@@ -25,7 +25,7 @@ type ReaderLogResult struct {
 }
 
 func (lr ReaderLogResult) GetSearch() *client.LogSearch {
-	return &lr.search
+	return lr.search
 }
 
 func (lr *ReaderLogResult) parseLine(line string) bool {
@@ -109,7 +109,7 @@ func (lr ReaderLogResult) GetFields() (ty.UniSet[string], chan ty.UniSet[string]
 }
 
 func GetLogResult(
-	search client.LogSearch,
+	search *client.LogSearch,
 	scanner *bufio.Scanner,
 	closer io.Closer,
 ) ReaderLogResult {

@@ -175,7 +175,7 @@ func resolveSearch() (client.LogSearchResult, error) {
 		return nil, err
 	}
 
-	searchResult, err2 := logClient.Get(searchRequest)
+	searchResult, err2 := logClient.Get(&searchRequest)
 	if err2 != nil {
 		return nil, err2
 	}

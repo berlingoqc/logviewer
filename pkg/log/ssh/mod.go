@@ -29,7 +29,7 @@ type sshLogClient struct {
 	conn *sshc.Client
 }
 
-func (lc sshLogClient) Get(search client.LogSearch) (client.LogSearchResult, error) {
+func (lc sshLogClient) Get(search *client.LogSearch) (client.LogSearchResult, error) {
 
 	cmd := search.Options.GetString(OptionsCmd)
 
@@ -59,6 +59,9 @@ func (lc sshLogClient) Get(search client.LogSearch) (client.LogSearchResult, err
 	}
 
 	errOut, err := session.StderrPipe()
+	if err != nil {
+		return nil, err
+	}
 
 	out, err := session.StdoutPipe()
 	if err != nil {

@@ -26,7 +26,7 @@ type Hits struct {
 
 type ElkSearchResult struct {
 	client client.LogClient
-	search client.LogSearch
+	search *client.LogSearch
 	result Hits
 
 	entriesChan chan ty.UniSet[string]
@@ -35,7 +35,7 @@ type ElkSearchResult struct {
 	// store extracted fields
 }
 
-func GetSearchResult(client client.LogClient, search client.LogSearch, hits Hits) ElkSearchResult {
+func GetSearchResult(client client.LogClient, search *client.LogSearch, hits Hits) ElkSearchResult {
 	return ElkSearchResult{
 		client: client,
 		search: search,
@@ -44,7 +44,7 @@ func GetSearchResult(client client.LogClient, search client.LogSearch, hits Hits
 }
 
 func (sr ElkSearchResult) GetSearch() *client.LogSearch {
-	return &sr.search
+	return sr.search
 }
 
 func (sr ElkSearchResult) GetEntries(context context.Context) ([]client.LogEntry, chan []client.LogEntry, error) {
@@ -135,7 +135,13 @@ func (sr ElkSearchResult) onChange(ctx context.Context) (chan []client.LogEntry,
 			select {
 			case <-time.After(duration):
 				{
-					sr.search.Range.Gte.Value = sr.search.Range.Lte.Value
+					date, err := time.Parse(time.RFC3339, sr.search.Range.Lte.Value)
+					if err != nil {
+						log.Println("error parsing Gte.Value " + err.Error())
+						continue
+					}
+					date = date.Add(time.Second * 1)
+					sr.search.Range.Gte.Value = date.Format(time.RFC3339)
 					sr.search.Range.Lte.Value = time.Now().Format(time.RFC3339)
 					result, err1 := sr.client.Get(sr.search)
 					if err1 != nil {

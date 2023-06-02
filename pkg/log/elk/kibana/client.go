@@ -18,7 +18,7 @@ type kibanaClient struct {
 	client http.JsonPostClient
 }
 
-func (kc kibanaClient) Get(search client.LogSearch) (client.LogSearchResult, error) {
+func (kc kibanaClient) Get(search *client.LogSearch) (client.LogSearchResult, error) {
 	var searchResponse SearchResponse
 
 	request, err := getSearchRequest(search)
@@ -36,7 +36,7 @@ func (kc kibanaClient) Get(search client.LogSearch) (client.LogSearchResult, err
 	return elk.GetSearchResult(&kc, search, searchResponse.RawResponse.Hits), nil
 }
 
-func getSearchRequest(search client.LogSearch) (SearchRequest, error) {
+func getSearchRequest(search *client.LogSearch) (SearchRequest, error) {
 	request := SearchRequest{}
 
 	index := search.Options.GetString("Index")

@@ -16,7 +16,7 @@ const (
 
 type localLogClient struct{}
 
-func (lc localLogClient) Get(search client.LogSearch) (client.LogSearchResult, error) {
+func (lc localLogClient) Get(search *client.LogSearch) (client.LogSearchResult, error) {
 
 	cmd := search.Options.GetString(OptionsCmd)
 

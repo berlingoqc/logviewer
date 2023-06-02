@@ -24,7 +24,7 @@ func (sf *logSearchFactory) GetSearchResult(contextId string, inherits []string,
 		return nil, err
 	}
 
-	sr, err := (*logClient).Get(searchContext.Search)
+	sr, err := (*logClient).Get(&searchContext.Search)
 
 	return sr, err
 }

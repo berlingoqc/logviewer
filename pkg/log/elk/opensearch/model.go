@@ -21,7 +21,7 @@ type SearchRequest struct {
 	Sort  []SortItem `json:"sort"`
 }
 
-func GetSearchRequest(logSearch client.LogSearch) (SearchRequest, error) {
+func GetSearchRequest(logSearch *client.LogSearch) (SearchRequest, error) {
 
 	conditions := make([]Map, len(logSearch.Fields)+1)
 

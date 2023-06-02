@@ -8,7 +8,7 @@ import (
 	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
-func GetDateRange(search client.LogSearch) (string, string, error) {
+func GetDateRange(search *client.LogSearch) (string, string, error) {
 	var gte, lte string
 
 	var fromDate time.Time
@@ -41,6 +41,9 @@ func GetDateRange(search client.LogSearch) (string, string, error) {
 			return "", "", errors.New("can't parse duration for last : " + search.Range.Last.Value)
 		}
 	}
+
+	search.Range.Lte.S(lte)
+	search.Range.Gte.S(gte)
 
 	return gte, lte, nil
 }

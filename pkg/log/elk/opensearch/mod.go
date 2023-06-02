@@ -19,7 +19,7 @@ type openSearchClient struct {
 	client http.JsonGetClient
 }
 
-func (kc openSearchClient) Get(search client.LogSearch) (client.LogSearchResult, error) {
+func (kc openSearchClient) Get(search *client.LogSearch) (client.LogSearchResult, error) {
 	var searchResult SearchResult
 
 	index := search.Options.GetString("Index")

@@ -59,4 +59,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/rivo/tview => github.com/berlingoqc/tview v0.0.0-20230511053024-822bd067b165
+replace github.com/rivo/tview => github.com/berlingoqc/tview v0.0.0-20230602175047-5c400211c573

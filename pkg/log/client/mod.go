@@ -25,5 +25,5 @@ type LogSearchResult interface {
 
 // Client to start a log search
 type LogClient interface {
-	Get(search LogSearch) (LogSearchResult, error)
+	Get(search *LogSearch) (LogSearchResult, error)
 }

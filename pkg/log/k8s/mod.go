@@ -39,7 +39,7 @@ type k8sLogClient struct {
 	clientset *kubernetes.Clientset
 }
 
-func (lc k8sLogClient) Get(search client.LogSearch) (client.LogSearchResult, error) {
+func (lc k8sLogClient) Get(search *client.LogSearch) (client.LogSearchResult, error) {
 
 	namespace := search.Options.GetString(FieldNamespace)
 	pod := search.Options.GetString(FieldPod)

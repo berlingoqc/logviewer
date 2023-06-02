@@ -22,7 +22,7 @@ type tviewWrapper struct {
 	app    *tview.Application
 	parent *tview.Flex
 	tv     *tview.TextView
-	fields *tview.Flex
+	fields *tview.DeepList
 	result client.LogSearchResult
 }
 
@@ -58,31 +58,27 @@ func createLogTextView(app *tview.Application, name string) *tviewWrapper {
 	parentFlex.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyCtrlB {
 			if wrapper.fields == nil {
-				flexFields := tview.NewFlex().SetDirection(tview.FlexRow)
-
 				fields, _, err := wrapper.result.GetFields()
 				if err != nil {
 					log.Println(err.Error())
 					return event
 				}
-				for k, _ := range fields {
 
-					listPrimitive := tview.NewList()
-					listPrimitive.AddItem(k, "", -1, func() {
-						log.Println("funny mitch")
+				listPrimitive := tview.NewDeepList()
+
+				i := 0
+				for k, values := range fields {
+					ii := i
+					listPrimitive.AddItem(k, "", rune(0), func() {
+						listPrimitive.ToggleSubListDisplay(ii)
 					})
-
-					flexFields.AddItem(listPrimitive, 0, 1, false)
-
-					/*
-						valuesList := tview.NewList()
-						for _, v := range values {
-							valuesList = valuesList.AddItem(v, "", rune(0), func() {})
-						}
-					*/
+					for _, v := range values {
+						listPrimitive.AddSubItem(v, "", rune(0), false, nil)
+					}
+					i += 1
 				}
 
-				wrapper.fields = flexFields
+				wrapper.fields = listPrimitive
 				parentFlex.AddItem(wrapper.fields, 0, 40, true)
 			} else {
 				wrapper.parent.RemoveItem(wrapper.fields)

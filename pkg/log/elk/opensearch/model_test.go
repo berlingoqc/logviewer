@@ -20,7 +20,7 @@ func TestBody(t *testing.T) {
 		Size:  ty.OptWrap(100),
 	}
 
-	request, err := GetSearchRequest(logSearch)
+	request, err := GetSearchRequest(&logSearch)
 	if err != nil {
 		t.Error(err)
 	}
