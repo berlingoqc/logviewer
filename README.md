@@ -290,3 +290,14 @@ request.
 # will display the field
 -> % logviewer -c ./config.json -i growbe-odoo -i growbe-ingress query
 ```
+
+
+## Todo
+
+* Mix multiple datasource in the same flow (maybe be complicated to order them correctly)
+* Expand JSON model if present
+* Create custom function for template to display multiline pretty things.
+* Add color
+* PrinterOptions template dont work in config
+* Automatic refresh if need be
+* Supporter template dans les expression regex ou autre moyens pour simplifier l'exctractions

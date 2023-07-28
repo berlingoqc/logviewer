@@ -3,14 +3,9 @@ package printer
 import (
 	"context"
 	"os"
-	"time"
 
 	"github.com/berlingoqc/logviewer/pkg/log/client"
 )
-
-func formatDate(layout string, t time.Time) string {
-	return t.Format(layout)
-}
 
 type PrintPrinter struct{}
 

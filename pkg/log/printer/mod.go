@@ -20,9 +20,7 @@ func WrapIoWritter(ctx context.Context, result client.LogSearchResult, writer io
 		templateConfig.S("[{{.Timestamp}}] {{.Message}}")
 	}
 
-	template, err3 := template.New("print_printer").Funcs(
-		template.FuncMap{"Format": formatDate},
-	).Parse(templateConfig.Value + "\n")
+	template, err3 := template.New("print_printer").Funcs(GetTemplateFunctionsMap()).Parse(templateConfig.Value + "\n")
 	if err3 != nil {
 		return err3
 	}
