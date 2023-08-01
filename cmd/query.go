@@ -231,13 +231,20 @@ var queryCommand = &cobra.Command{
 	Short:  "Query a login system for logs and available fields",
 	PreRun: onCommandStart,
 	Run: func(cmd *cobra.Command, args []string) {
-		var config config.ContextConfig
-		if err := ty.ReadJsonFile(contextPath, &config); err != nil {
+
+		config := views.TuiApplicationConfig{
+			ContextFilePath: contextPath,
+			LogPages: []views.LogPageConfig{
+				{
+					Name:       "Page 1",
+					ContextIds: contextIds,
+				},
+			},
+		}
+
+		if err := views.RunTuiApplication(config); err != nil {
 			panic(err)
 		}
 
-		if err := views.RunQueryViewApp(config, contextIds); err != nil {
-			panic(err)
-		}
 	},
 }

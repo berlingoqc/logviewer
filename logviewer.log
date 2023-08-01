@@ -1,0 +1,22 @@
+2023/06/02 13:38:13 [GET]https://logs-dev.mfxelk.eu-west-1.nonprod.tmaws.eu/tmc*/_search {"query":{"bool":{"must":[{"match":{"applicationName":"tmc.services.checkout"}},{"range":{"@timestamp":{"format":"strict_date_optional_time","gte":"2023-06-02T13:23:13-04:00","lte":"2023-06-02T13:38:13-04:00"}}}]}},"size":100,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}]}
+
+2023/06/02 13:38:14 receive 0 for tmc*
+2023/06/02 13:38:19 error parsing Gte.Value parsing time "" as "2006-01-02T15:04:05Z07:00": cannot parse "" as "2006"
+2023/06/02 13:38:24 error parsing Gte.Value parsing time "" as "2006-01-02T15:04:05Z07:00": cannot parse "" as "2006"
+2023/06/02 13:38:32 error parsing Gte.Value parsing time "" as "2006-01-02T15:04:05Z07:00": cannot parse "" as "2006"
+2023/06/02 13:38:37 error parsing Gte.Value parsing time "" as "2006-01-02T15:04:05Z07:00": cannot parse "" as "2006"
+2023/06/02 13:43:00 [GET]https://logs-dev.mfxelk.eu-west-1.nonprod.tmaws.eu/tmc*/_search {"query":{"bool":{"must":[{"match":{"applicationName":"tmc.services.checkout"}},{"range":{"@timestamp":{"format":"strict_date_optional_time","gte":"2023-06-02T13:28:00-04:00","lte":"2023-06-02T13:43:00-04:00"}}}]}},"size":100,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}]}
+
+2023/06/02 13:43:01 receive 0 for tmc*
+2023/06/02 13:43:33 [GET]https://logs-dev.mfxelk.eu-west-1.nonprod.tmaws.eu/tmc*/_search {"query":{"bool":{"must":[{"match":{"applicationName":"tmc.services.checkout"}},{"range":{"@timestamp":{"format":"strict_date_optional_time","gte":"2023-06-02T13:43:01-04:00","lte":"2023-06-02T13:43:33-04:00"}}}]}},"size":100,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}]}
+
+2023/06/02 13:43:33 receive 0 for tmc*
+2023/06/02 13:43:51 [GET]https://logs-dev.mfxelk.eu-west-1.nonprod.tmaws.eu/tmc*/_search {"query":{"bool":{"must":[{"match":{"applicationName":"tmc.services.checkout"}},{"range":{"@timestamp":{"format":"strict_date_optional_time","gte":"2023-06-02T13:43:34-04:00","lte":"2023-06-02T13:43:51-04:00"}}}]}},"size":100,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}]}
+
+2023/06/02 13:43:51 receive 0 for tmc*
+2023/06/02 13:44:02 [GET]https://logs-dev.mfxelk.eu-west-1.nonprod.tmaws.eu/tmc*/_search {"query":{"bool":{"must":[{"match":{"applicationName":"tmc.services.checkout"}},{"range":{"@timestamp":{"format":"strict_date_optional_time","gte":"2023-06-02T13:43:52-04:00","lte":"2023-06-02T13:44:02-04:00"}}}]}},"size":100,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}]}
+
+2023/06/02 13:44:02 receive 9 for tmc*
+2023/06/02 13:44:07 [GET]https://logs-dev.mfxelk.eu-west-1.nonprod.tmaws.eu/tmc*/_search {"query":{"bool":{"must":[{"match":{"applicationName":"tmc.services.checkout"}},{"range":{"@timestamp":{"format":"strict_date_optional_time","gte":"2023-06-02T13:44:03-04:00","lte":"2023-06-02T13:44:07-04:00"}}}]}},"size":100,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}]}
+
+2023/06/02 13:44:07 receive 4 for tmc*

@@ -1,0 +1,55 @@
+{
+    "clients": {
+        "local": {
+            "type": "local",
+            "options": {}
+        },
+        "alien": {
+            "type": "ssh",
+            "options": {
+                "User": "wq",
+                "Addr": "192.168.2.9:22"
+            }
+        }
+    },
+    "searches": {
+        "default": {
+            "search": {
+                "last": "15m",
+                "size": 300
+            }
+        }
+    },
+    "contexts": {
+        "localSystem": {
+            "client": "local",
+            "searchInherit": "default",
+            "search": {
+                "refreshOptions": {
+                    "duration": " "
+                },
+                "options": {
+                    "Cmd": "tail -n 10 -f ./system.log"
+                }
+            },
+            "printerOptions": {
+                "template": "{{.Message}} lol"
+            }
+        },
+        "home-nginx": {
+            "client": "alien",
+            "searchInherit": "default",
+            "search": {
+                "refresh": {
+                    "duration": " "
+                },
+                "options": {
+                    "Cmd": "tail -f /var/log/nginx/access.log"
+                }
+            },
+            "printerOptions": {
+                "template": " {{.Message}}"
+            }
+        }
+    }
+}

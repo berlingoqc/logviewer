@@ -1,0 +1,189 @@
+{
+  "clients": {
+    "local": {
+      "type": "local",
+      "options": {}
+    },
+    "os-dev": {
+      "type": "opensearch",
+      "options": {
+        "Endpoint": "https://logs-dev.mfxelk.eu-west-1.nonprod.tmaws.eu"
+      }
+    },
+    "os-preprod": {
+      "type": "opensearch",
+      "options": {
+        "Endpoint": "https://logs-preprod.mfxelk.eu-west-1.prod.tmaws.eu"
+      }
+    },
+    "os-prod": {
+      "type": "opensearch",
+      "options": {
+        "Endpoint": "https://logs-prod.mfxelk.eu-west-1.prod.tmaws.eu"
+      }
+    },
+    "tsapi-intqa": {
+      "type": "ssh",
+      "options": {
+        "User": "appsc",
+        "Addr": "log1.mf.intqa1.coresys.tmcs:22"
+      }
+    },
+    "wq": {
+      "type": "kibana",
+      "options": {
+        "Endpoint": "http://kibana.elk.inner.wquintal.ca"
+      }
+    }
+  },
+  "searches": {
+    "mfx": {
+      "range": {
+        "last": "15m"
+      },
+      "refresh": {
+        "duration": "5s"
+      },
+      "size": 100,
+      "options": {
+        "Index": "mfx*"
+      },
+      "printerOptions": {
+        "template": "[{{.Fields.correlationId}}] {{.Message}}"
+      }
+    },
+    "maf": {
+      "fields": {
+        "applicationName": "mfx.services.maf"
+      }
+    },
+    "checkout": {
+      "fields": {
+        "applicationName": "tmc.services.checkout"
+      },
+      "options": {
+          "Index": "tmc*"
+      }
+    }
+
+  },
+  "contexts": {
+    "localSystem": {
+      "client": "local",
+      "search": {
+        "refreshOptions": {
+          "duration": " "
+        },
+        "options": {
+          "Cmd": "tail -n 10 -f ./system.log"
+        },
+        "printerOptions": {
+          "template": "{{.Message}} lol"
+        }
+      }
+    },
+    "mfx-dev": {
+      "client": "os-dev",
+      "searchInherit": [
+        "mfx"
+      ],
+      "search": {}
+    },
+    "mfx-preprod": {
+      "client": "os-preprod",
+      "searchInherit": [
+        "mfx"
+      ],
+      "search": {
+        "refresh": {
+          "duration": "2s"
+        }
+      }
+    },
+    "maf-dev": {
+      "client": "os-dev",
+      "searchInherit": [
+        "mfx",
+        "maf"
+      ]
+    },
+    "maf-preprod": {
+      "client": "os-preprod",
+      "searchInherit": [
+        "mfx",
+        "maf"
+      ]
+    },
+    "checkout-dev": {
+      "client": "os-dev",
+      "searchInherit": [
+        "mfx",
+        "checkout"
+      ]
+    },
+    "checkout-preprod": {
+      "client": "os-preprod",
+      "searchInherit": [
+        "mfx",
+        "checkout"
+      ]
+    },
+    "checkout-prod": {
+      "client": "os-prod",
+      "searchInherit": [
+        "mfx",
+        "checkout"
+      ]
+    },
+    "tsapi-intqa-ch": {
+      "client": "tsapi-intqa",
+      "search": {
+        "refresh": {
+          "duration": " "
+        },
+        "options": {
+          "Cmd": "tail -f -q -n 100 /log/local/log/jim*.mf.intqa1.coresys.tmcs/mfx.services.transactional.api_ch.log"
+        },
+        "printerOptions": {
+          "template": " {{.Message}}"
+        }
+      }
+    },
+    "growbe-ingress": {
+      "client": "wq",
+      "search": {
+        "range": {
+          "last": "15m"
+        },
+        "refresh": {
+          "duration": "5s"
+        },
+        "fields": {
+          "kubernetes.container_image": "k8s.gcr.io/ingress-nginx/controller:v1.2.0"
+        },
+        "size": 100,
+        "options": {
+          "Index": "logstash-*"
+        }
+      }
+    },
+    "growbe-odoo": {
+      "client": "wq",
+      "search": {
+        "range": {
+          "last": "15m"
+        },
+        "refresh": {
+          "duration": "5s"
+        },
+        "fields": {
+          "kubernetes.container_image": "docker.io/bitnami/odoo:16.0.20221115-debian-11-r13"
+        },
+        "size": 100,
+        "options": {
+          "Index": "logstash-*"
+        }
+      }
+    }
+  }
+}

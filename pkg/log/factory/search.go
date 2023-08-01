@@ -5,14 +5,14 @@ import (
 	"github.com/berlingoqc/logviewer/pkg/log/config"
 )
 
-type logSearchFactory struct {
-	clientsFactory  *logClientFactory
+type LogSearchFactory struct {
+	clientsFactory  *LogClientFactory
 	searchesContext config.Contexts
 
 	config config.ContextConfig
 }
 
-func (sf *logSearchFactory) GetSearchResult(contextId string, inherits []string, logSearch client.LogSearch) (client.LogSearchResult, error) {
+func (sf *LogSearchFactory) GetSearchResult(contextId string, inherits []string, logSearch client.LogSearch) (client.LogSearchResult, error) {
 
 	searchContext, err := sf.config.GetSearchContext(contextId, inherits, logSearch)
 	if err != nil {
@@ -30,11 +30,11 @@ func (sf *logSearchFactory) GetSearchResult(contextId string, inherits []string,
 }
 
 func GetLogSearchFactory(
-	f *logClientFactory,
+	f *LogClientFactory,
 	c config.ContextConfig,
-) (*logSearchFactory, error) {
+) (*LogSearchFactory, error) {
 
-	factory := new(logSearchFactory)
+	factory := new(LogSearchFactory)
 	factory.searchesContext = make(config.Contexts)
 	factory.clientsFactory = f
 	factory.config = c

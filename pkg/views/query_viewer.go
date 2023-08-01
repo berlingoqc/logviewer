@@ -1,13 +1,11 @@
 package views
 
+/*
 import (
 	"context"
-	"errors"
 	"log"
 
 	"github.com/berlingoqc/logviewer/pkg/log/client"
-	"github.com/berlingoqc/logviewer/pkg/log/config"
-	"github.com/berlingoqc/logviewer/pkg/log/factory"
 	"github.com/berlingoqc/logviewer/pkg/log/printer"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -18,86 +16,12 @@ const (
 	selectedColor    = tcell.ColorGreen
 )
 
-type tviewWrapper struct {
-	app    *tview.Application
-	parent *tview.Flex
-	tv     *tview.TextView
-	fields *tview.DeepList
-	result client.LogSearchResult
-}
-
-func (tv tviewWrapper) Display(ctx context.Context, result client.LogSearchResult) error {
-	go printer.WrapIoWritter(ctx, result, tv.tv, func() {
-		// TODO: scroll to end if we are not scroll up
-		tv.app.QueueUpdateDraw(func() {
-			tv.tv.ScrollToEnd()
-		})
-	})
-
-	return nil
-}
-
-func createLogTextView(app *tview.Application, name string) *tviewWrapper {
-	parentFlex := tview.NewFlex().SetDirection(tview.FlexColumn)
-
-	tv := tview.NewTextView().
-		SetTextAlign(tview.AlignLeft).
-		SetScrollable(true)
-
-	tv.SetBorder(true)
-	tv.SetBorderColor(notSelectedColor)
-	tv.SetTitle(name)
-
-	parentFlex.AddItem(tv, 0, 100, false)
-
-	wrapper := new(tviewWrapper)
-	wrapper.app = app
-	wrapper.tv = tv
-	wrapper.parent = parentFlex
-
-	parentFlex.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyCtrlB {
-			if wrapper.fields == nil {
-				fields, _, err := wrapper.result.GetFields()
-				if err != nil {
-					log.Println(err.Error())
-					return event
-				}
-
-				listPrimitive := tview.NewDeepList()
-
-				i := 0
-				for k, values := range fields {
-					ii := i
-					listPrimitive.AddItem(k, "", rune(0), func() {
-						listPrimitive.ToggleSubListDisplay(ii)
-					})
-					for _, v := range values {
-						listPrimitive.AddSubItem(v, "", rune(0), false, nil)
-					}
-					i += 1
-				}
-
-				wrapper.fields = listPrimitive
-				parentFlex.AddItem(wrapper.fields, 0, 40, true)
-			} else {
-				wrapper.parent.RemoveItem(wrapper.fields)
-				wrapper.fields = nil
-			}
-			return nil
-		}
-		return event
-	})
-
-	return wrapper
-}
-
 // Return the queryBox to display one output of logs
-func getQueryBox(app *tview.Application, searchesId []string) (*tview.Flex, map[string]*tviewWrapper, error) {
+func getQueryBox(app *tview.Application, searchesId []string) (*tview.Flex, map[string]*logView, error) {
 
 	flex := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	tviewWrappers := make(map[string]*tviewWrapper)
+	tviewWrappers := make(map[string]*logView)
 
 	elementProportion := 100 / len(searchesId)
 
@@ -113,20 +37,6 @@ func getQueryBox(app *tview.Application, searchesId []string) (*tview.Flex, map[
 func RunQueryViewApp(config config.ContextConfig, searchIds []string) error {
 
 	app := tview.NewApplication().EnableMouse(true)
-
-	clientFactory, err := factory.GetLogClientFactory(config.Clients)
-	if err != nil {
-		return err
-	}
-
-	if len(searchIds) == 0 {
-		return errors.New("required multiple searches for query")
-	}
-
-	searchFactory, err := factory.GetLogSearchFactory(clientFactory, config)
-	if err != nil {
-		return err
-	}
 
 	grid, wrappers, err := getQueryBox(app, searchIds)
 	if err != nil {
@@ -156,3 +66,4 @@ func RunQueryViewApp(config config.ContextConfig, searchIds []string) error {
 
 	return nil
 }
+*/

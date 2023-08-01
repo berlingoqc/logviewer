@@ -13,13 +13,13 @@ import (
 	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
-type logClientFactory struct {
+type LogClientFactory struct {
 	clients ty.LazyMap[string, client.LogClient]
 }
 
-func GetLogClientFactory(clients config.Clients) (*logClientFactory, error) {
+func GetLogClientFactory(clients config.Clients) (*LogClientFactory, error) {
 
-	logClientFactory := new(logClientFactory)
+	logClientFactory := new(LogClientFactory)
 	logClientFactory.clients = make(ty.LazyMap[string, client.LogClient])
 
 	for k, v := range clients {
