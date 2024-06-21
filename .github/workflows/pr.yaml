@@ -17,8 +17,9 @@ jobs:
           check-latest: true
           cache-dependency-path: |
             go.sum
-      - name: Go dependencies
-        run: go install github.com/boumenot/gocover-cobertura@latest
+      - uses: 'github.com/actions-go/go-install@main'
+        with:
+          module: "github.com/boumenot/gocover-cobertura@latest"
       - name: Test
         run: go test -coverprofile=coverage.txt -covermode count ./... && cat coverage.txt | gocover-cobertura > coverage.xml
       - name: Build for all plateform
@@ -35,4 +36,10 @@ jobs:
           indicators: true
           output: both
           thresholds: '20 60 80'
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: code-coverage-results.md
 
