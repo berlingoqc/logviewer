@@ -18,8 +18,10 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: 1.19.5
+      - name: Go dependencies
+        run: go install github.com/boumenot/gocover-cobertura@latest
       - name: Test
-        run: go test
+        run: go test -coverprofile=coverage.txt -covermode count ./... && cat coverage.txt | gocover-cobertura > coverage.xml
       - name: Build for all plateform
         run: ./build.sh
       - name: Docker build
@@ -34,4 +36,15 @@ jobs:
           title: "Development Build"
           files: |
             ./build/*
-
+      - name: Code Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage.xml
+          badge: true
+          fail_below_min: true
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+          thresholds: '20 60 80'
