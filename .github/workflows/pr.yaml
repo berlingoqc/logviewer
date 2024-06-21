@@ -17,11 +17,11 @@ jobs:
           check-latest: true
           cache-dependency-path: |
             go.sum
-      - uses: 'github.com/actions-go/go-install@main'
-        with:
-          module: "github.com/boumenot/gocover-cobertura@latest"
       - name: Test
-        run: go test -coverprofile=coverage.txt -covermode count ./... && cat coverage.txt | gocover-cobertura > coverage.xml
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          go get -u golang.org/x/lint/golint
+          go test -coverprofile=coverage.txt -covermode count ./... && cat coverage.txt | gocover-cobertura > coverage.xml
       - name: Build for all plateform
         run: ./build.sh
       - name: Code Coverage Report
