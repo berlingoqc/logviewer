@@ -20,7 +20,7 @@ jobs:
       - name: Test
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
-          go get -u golang.org/x/lint/golint
+          go get -u github.com/boumenot/gocover-cobertura@latest
           go test -coverprofile=coverage.txt -covermode count ./... && cat coverage.txt | gocover-cobertura > coverage.xml
       - name: Build for all plateform
         run: ./build.sh
