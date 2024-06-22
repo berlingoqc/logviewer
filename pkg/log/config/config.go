@@ -9,7 +9,7 @@ import (
 
 type Client struct {
 	Type    string `json:"type"`
-	Options ty.MS  `json:"options"`
+	Options ty.MI  `json:"options"`
 }
 
 type SearchContext struct {

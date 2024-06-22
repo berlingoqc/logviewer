@@ -24,7 +24,7 @@ type JobStatusResponse struct {
 
 // Struct to hold search results response
 type SearchResultsResponse struct {
-	Results []map[string]interface{} `json:"results"`
+	Results []ty.MI `json:"results"`
 }
 
 type SplunkTarget struct {

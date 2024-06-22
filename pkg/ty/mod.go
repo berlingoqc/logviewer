@@ -3,11 +3,25 @@ package ty
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"time"
 )
 
 type MI map[string]interface{}
 type MS map[string]string
+
+func (mi *MI) Merge(mi2 MI) {
+	// TODO: maybe support deep inspection
+	for k, v := range mi2 {
+		(*mi)[k] = v
+	}
+}
+
+func (ms *MS) Merge(ms2 MS) {
+	for k, v := range ms2 {
+		(*ms)[k] = v
+	}
+}
 
 const Format = time.RFC3339
 
@@ -23,6 +37,13 @@ func (mi MI) GetString(key string) string {
 		return v.(string)
 	}
 	return ""
+}
+
+func (mi MI) GetMS(key string) MS {
+	if v, b := mi[key]; b {
+		return v.(MS)
+	}
+	return MS{}
 }
 
 func (mi MI) GetBool(key string) bool {
@@ -147,4 +168,18 @@ func (us UniSet[V]) Add(key string, v V) bool {
 	}
 	us[key] = append(us[key], v)
 	return true
+}
+
+func AddField(k string, v interface{}, fields *UniSet[string]) {
+	switch value := v.(type) {
+	case string:
+		fields.Add(k, value)
+	case map[string]interface{}:
+		for kk, vv := range value {
+			recKey := k + "." + kk
+			AddField(recKey, vv, fields)
+		}
+	default:
+		log.Println("invalid type for field " + k)
+	}
 }

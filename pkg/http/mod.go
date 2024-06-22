@@ -172,13 +172,23 @@ func (c HttpClient) Get(path string, queryParams ty.MS, body interface{}, respon
 }
 
 func GetClient(url string) HttpClient {
-	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
-	spaceClient := http.Client{Transport: customTransport}
+	spaceClient := getSpaceClient()
 
 	return HttpClient{
 		client: spaceClient,
 		url:    url,
 	}
+}
+
+func getSpaceClient() http.Client {
+	switch v := http.DefaultTransport.(type) {
+	case (*http.Transport):
+		customTransport := v.Clone()
+		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		return http.Client{Transport: customTransport}
+	default:
+		return http.Client{}
+
+	}
+
 }

@@ -56,20 +56,6 @@ func (sr ElkSearchResult) GetEntries(context context.Context) ([]client.LogEntry
 	return entries, c, err
 }
 
-func addField(k string, v interface{}, fields *ty.UniSet[string]) {
-	switch value := v.(type) {
-	case string:
-		fields.Add(k, value)
-	case map[string]interface{}:
-		for kk, vv := range value {
-			recKey := k + "." + kk
-			addField(recKey, vv, fields)
-		}
-	default:
-		log.Println("invalid type for field " + k)
-	}
-}
-
 func (sr ElkSearchResult) GetFields() (ty.UniSet[string], chan ty.UniSet[string], error) {
 
 	fields := ty.UniSet[string]{}
@@ -79,7 +65,7 @@ func (sr ElkSearchResult) GetFields() (ty.UniSet[string], chan ty.UniSet[string]
 			if k == "message" || k == "@timestamp" {
 				continue
 			}
-			addField(k, v, &fields)
+			ty.AddField(k, v, &fields)
 		}
 	}
 	return fields, nil, nil
