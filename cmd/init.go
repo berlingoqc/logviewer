@@ -7,23 +7,31 @@ import (
 )
 
 var (
+	// kibana options
 	endpointOpensearch string
 	endpointKibana     string
 	index              string
 
+	// k8s options
 	k8sNamespace string
 	k8sPod       string
 	k8sContainer string
 	k8sPrevious  bool
 	k8sTimestamp bool
 
+	// splunk
+	endpointSplunk string
+
+	// ssh options
 	sshOptions ssh.SSHLogClientOptions
 	cmd        string
 
+	// range
 	from string
 	to   string
 	last string
 
+	// fields
 	fields    []string
 	fieldsOps []string
 	inherits  []string
@@ -70,6 +78,8 @@ func init() {
 	queryCommand.PersistentFlags().StringVar(&endpointOpensearch, "opensearch-endpoint", "", "Opensearch endpoint")
 	queryCommand.PersistentFlags().StringVar(&endpointKibana, "kibana-endpoint", "", "Kibana endpoint")
 	queryCommand.PersistentFlags().StringVar(&index, "elk-index", "", "Elk index to search")
+	// SPLUNK
+	queryCommand.PersistentFlags().StringVar(&endpointSplunk, "splunk-endpoint", "", "Splunk endpoint")
 	// SSH
 	queryCommand.PersistentFlags().StringVar(&sshOptions.Addr, "ssh-addr", "", "SSH address and port localhost:22")
 	queryCommand.PersistentFlags().StringVar(&sshOptions.User, "ssh-user", "", "SSH user")

@@ -16,6 +16,7 @@ import (
 	"github.com/berlingoqc/logviewer/pkg/log/k8s"
 	"github.com/berlingoqc/logviewer/pkg/log/local"
 	"github.com/berlingoqc/logviewer/pkg/log/printer"
+	splunk "github.com/berlingoqc/logviewer/pkg/log/splunk/logclient"
 	"github.com/berlingoqc/logviewer/pkg/log/ssh"
 	"github.com/berlingoqc/logviewer/pkg/ty"
 	"github.com/berlingoqc/logviewer/pkg/views"
@@ -147,9 +148,12 @@ func resolveSearch() (client.LogSearchResult, error) {
 		} else {
 			system = "local"
 		}
+	} else if endpointSplunk != "" {
+		system = "splunk"
 	} else {
 		return nil, errors.New(`
         failed to select a system for logging provide one of the following:
+			* --splunk-endpoint
 			* --kibana-endpoint
             * --openseach-endpoint
             * --k8s-namespace
@@ -168,6 +172,10 @@ func resolveSearch() (client.LogSearchResult, error) {
 		logClient, err = k8s.GetLogClient(k8s.K8sLogClientOptions{})
 	} else if system == "ssh" {
 		logClient, err = ssh.GetLogClient(sshOptions)
+	} else if system == "splunk" {
+		logClient, err = splunk.GetClient(splunk.SplunkLogSearchClientOptions{
+			Url: endpointSplunk,
+		})
 	} else {
 		logClient, err = local.GetLogClient()
 	}
