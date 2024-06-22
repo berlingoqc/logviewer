@@ -9,7 +9,7 @@ import (
 )
 
 const lineBreak = "\n"
-const lineRegex = "(.*)[:=](.*)"
+const lineRegex = "^([a-zA-Z0-9\\-]*)[:=](.*)$"
 
 /*
 * Supported separator: : , = , json map
@@ -41,6 +41,9 @@ func (ms *MS) LoadMS(path string) error {
 
 	for _, v := range lines {
 		matches := r.FindAllStringSubmatch(v, len(v))
+		if len(matches) == 0 || len(matches[0]) < 3 {
+			continue
+		}
 
 		(*ms)[strings.Trim(matches[0][1], " ")] = strings.Trim(matches[0][2], " ")
 	}

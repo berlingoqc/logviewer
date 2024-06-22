@@ -11,7 +11,8 @@ import (
 func TestLoadFileText(t *testing.T) {
 	var payload = "test123: value\n" +
 		"rare=value\n" +
-		"rare2= value"
+		"rare2= value\n" +
+		"Origin: https://splunk.com"
 	path := CreateTestFile(t.Name(), payload)
 	defer DeleteTestFile(path)
 
@@ -22,6 +23,7 @@ func TestLoadFileText(t *testing.T) {
 	assert.Equal(t, "value", ms["test123"], "value not equal")
 	assert.Equal(t, "value", ms["rare"], "value not equal")
 	assert.Equal(t, "value", ms["rare2"], "value not equal")
+	assert.Equal(t, "https://splunk.com", ms["Origin"], "value not equal")
 
 }
 

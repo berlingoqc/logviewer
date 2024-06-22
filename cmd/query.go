@@ -133,6 +133,15 @@ func resolveSearch() (client.LogSearchResult, error) {
 		}
 	}
 
+	if headerField != "" {
+		headerMap := ty.MS{}
+
+		if err := headerMap.LoadMS(headerField); err != nil {
+			return nil, err
+		}
+
+	}
+
 	var err error
 	var system string
 
@@ -173,8 +182,27 @@ func resolveSearch() (client.LogSearchResult, error) {
 	} else if system == "ssh" {
 		logClient, err = ssh.GetLogClient(sshOptions)
 	} else if system == "splunk" {
+		headers := ty.MS{}
+		body := ty.MS{}
+		if headerField != "" {
+			if err = headers.LoadMS(headerField); err != nil {
+				return nil, err
+			}
+
+			headers = headers.ResolveVariables()
+		}
+		if bodyField != "" {
+			if err = body.LoadMS(bodyField); err != nil {
+				return nil, err
+			}
+
+			body = body.ResolveVariables()
+		}
+
 		logClient, err = splunk.GetClient(splunk.SplunkLogSearchClientOptions{
-			Url: endpointSplunk,
+			Url:        endpointSplunk,
+			SearchBody: body,
+			Headers:    headers,
 		})
 	} else {
 		logClient, err = local.GetLogClient()
