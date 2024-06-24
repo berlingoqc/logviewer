@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/berlingoqc/logviewer/pkg/log/client"
-	"github.com/berlingoqc/logviewer/pkg/log/splunk/restapi"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/splunk/restapi"
 	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 

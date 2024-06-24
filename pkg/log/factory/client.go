@@ -5,12 +5,12 @@ import (
 
 	"github.com/berlingoqc/logviewer/pkg/log/client"
 	"github.com/berlingoqc/logviewer/pkg/log/config"
-	"github.com/berlingoqc/logviewer/pkg/log/elk/kibana"
-	"github.com/berlingoqc/logviewer/pkg/log/elk/opensearch"
-	"github.com/berlingoqc/logviewer/pkg/log/k8s"
-	"github.com/berlingoqc/logviewer/pkg/log/local"
-	splunk "github.com/berlingoqc/logviewer/pkg/log/splunk/logclient"
-	"github.com/berlingoqc/logviewer/pkg/log/ssh"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/elk/kibana"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/elk/opensearch"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/k8s"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/local"
+	splunk "github.com/berlingoqc/logviewer/pkg/log/impl/splunk/logclient"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/ssh"
 	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 

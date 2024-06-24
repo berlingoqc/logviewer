@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/berlingoqc/logviewer/pkg/log"
-	"github.com/berlingoqc/logviewer/pkg/log/ssh"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/ssh"
 	"github.com/spf13/cobra"
 )
 

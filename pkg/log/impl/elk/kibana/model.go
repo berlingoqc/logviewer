@@ -1,7 +1,7 @@
 package kibana
 
 import (
-	"github.com/berlingoqc/logviewer/pkg/log/elk"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/elk"
 	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 

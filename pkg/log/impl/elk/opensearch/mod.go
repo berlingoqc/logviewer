@@ -6,7 +6,7 @@ import (
 
 	"github.com/berlingoqc/logviewer/pkg/http"
 	"github.com/berlingoqc/logviewer/pkg/log/client"
-	"github.com/berlingoqc/logviewer/pkg/log/elk"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/elk"
 	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 

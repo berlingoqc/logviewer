@@ -2,7 +2,7 @@ package opensearch
 
 import (
 	"github.com/berlingoqc/logviewer/pkg/log/client"
-	"github.com/berlingoqc/logviewer/pkg/log/elk"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/elk"
 )
 
 type SearchResult struct {
