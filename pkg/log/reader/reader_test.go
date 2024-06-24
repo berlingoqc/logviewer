@@ -27,7 +27,7 @@ func TestTimestampExtraction(t *testing.T) {
 	entry := logResult.entries[0]
 
 	assert.Equal(t, true, isParsed)
-	assert.Equal(t, "/docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration", entry.Message)
+	assert.Equal(t, "\x01\x00\x00\x00\x00\x00\x00\x80 /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration", entry.Message)
 	assert.Equal(t, expectedTime, entry.Timestamp)
 
 }
