@@ -22,8 +22,8 @@ jobs:
           export PATH=$PATH:$(go env GOPATH)/bin
           go install github.com/boumenot/gocover-cobertura@latest
           go test -coverprofile=coverage.txt -covermode count ./... && cat coverage.txt | gocover-cobertura > coverage.xml
-      - name: Build for all plateform
-        run: ./build.sh
+      - name: Build for this platform
+        run: go build
       - name: Code Coverage Report
         uses: irongut/CodeCoverageSummary@v1.3.0
         with:
