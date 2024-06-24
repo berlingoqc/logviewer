@@ -5,7 +5,7 @@ import (
 
 	"github.com/berlingoqc/logviewer/pkg/http"
 	"github.com/berlingoqc/logviewer/pkg/log/client"
-	"github.com/berlingoqc/logviewer/pkg/log/elk"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/elk"
 	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
@@ -15,7 +15,7 @@ type KibanaTarget struct {
 
 type kibanaClient struct {
 	target KibanaTarget
-	client http.JsonPostClient
+	client http.HttpClient
 }
 
 func (kc kibanaClient) Get(search *client.LogSearch) (client.LogSearchResult, error) {
@@ -26,9 +26,9 @@ func (kc kibanaClient) Get(search *client.LogSearch) (client.LogSearchResult, er
 		return nil, err
 	}
 
-	err = kc.client.Post("/internal/search/es", ty.MS{
+	err = kc.client.PostJson("/internal/search/es", ty.MS{
 		"kbn-version": search.Options.GetOr("version", "7.10.2").(string),
-	}, &request, &searchResponse)
+	}, &request, &searchResponse, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -107,6 +107,6 @@ func getSearchRequest(search *client.LogSearch) (SearchRequest, error) {
 func GetClient(target KibanaTarget) (client.LogClient, error) {
 	client := new(kibanaClient)
 	client.target = target
-	client.client = http.PostClient(target.Endpoint)
+	client.client = http.GetClient(target.Endpoint)
 	return client, nil
 }

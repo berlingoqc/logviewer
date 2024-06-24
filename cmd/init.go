@@ -2,28 +2,40 @@ package cmd
 
 import (
 	"github.com/berlingoqc/logviewer/pkg/log"
-	"github.com/berlingoqc/logviewer/pkg/log/ssh"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/ssh"
 	"github.com/spf13/cobra"
 )
 
 var (
+	// kibana options
 	endpointOpensearch string
 	endpointKibana     string
 	index              string
 
+	// k8s options
 	k8sNamespace string
 	k8sPod       string
 	k8sContainer string
 	k8sPrevious  bool
 	k8sTimestamp bool
 
+	// splunk
+	endpointSplunk string
+
+	// ssh options
 	sshOptions ssh.SSHLogClientOptions
 	cmd        string
 
+	// extra client fields
+	headerField string
+	bodyField   string
+
+	// range
 	from string
 	to   string
 	last string
 
+	// fields
 	fields    []string
 	fieldsOps []string
 	inherits  []string
@@ -70,10 +82,16 @@ func init() {
 	queryCommand.PersistentFlags().StringVar(&endpointOpensearch, "opensearch-endpoint", "", "Opensearch endpoint")
 	queryCommand.PersistentFlags().StringVar(&endpointKibana, "kibana-endpoint", "", "Kibana endpoint")
 	queryCommand.PersistentFlags().StringVar(&index, "elk-index", "", "Elk index to search")
+	// SPLUNK
+	queryCommand.PersistentFlags().StringVar(&endpointSplunk, "splunk-endpoint", "", "Splunk endpoint")
 	// SSH
 	queryCommand.PersistentFlags().StringVar(&sshOptions.Addr, "ssh-addr", "", "SSH address and port localhost:22")
 	queryCommand.PersistentFlags().StringVar(&sshOptions.User, "ssh-user", "", "SSH user")
 	queryCommand.PersistentFlags().StringVar(&sshOptions.PrivateKey, "ssh-identifiy", "", "SSH private key , by default $HOME/.ssh/id_rsa")
+
+	// ADDITIONAL CLIENT INFO
+	queryCommand.PersistentFlags().StringVar(&headerField, "client-headers", "", "File containings list of headers to be used by the underlying client")
+	queryCommand.PersistentFlags().StringVar(&bodyField, "client-body", "", "File containing base body to be used by the underlying client")
 
 	// COMMAND
 	queryCommand.PersistentFlags().StringVar(&cmd, "cmd", "", "If using ssh or local , manual command to run")

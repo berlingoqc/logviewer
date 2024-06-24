@@ -6,7 +6,7 @@ import (
 
 	"github.com/berlingoqc/logviewer/pkg/http"
 	"github.com/berlingoqc/logviewer/pkg/log/client"
-	"github.com/berlingoqc/logviewer/pkg/log/elk"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/elk"
 	"github.com/berlingoqc/logviewer/pkg/ty"
 )
 
@@ -16,7 +16,7 @@ type OpenSearchTarget struct {
 
 type openSearchClient struct {
 	target OpenSearchTarget
-	client http.JsonGetClient
+	client http.HttpClient
 }
 
 func (kc openSearchClient) Get(search *client.LogSearch) (client.LogSearchResult, error) {
@@ -33,7 +33,7 @@ func (kc openSearchClient) Get(search *client.LogSearch) (client.LogSearchResult
 		return nil, err
 	}
 
-	err = kc.client.Get(fmt.Sprintf("/%s/_search", index), ty.MS{}, &request, &searchResult)
+	err = kc.client.Get(fmt.Sprintf("/%s/_search", index), ty.MS{}, &request, &searchResult, nil)
 	if err != nil {
 		return nil, err
 	}

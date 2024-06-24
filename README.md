@@ -10,11 +10,11 @@ Log source at the moment are:
 * Command local or by ssh
 * Kubectl logs
 * Opensearch/Kibana logs
+* Splunk logs
 
 Possible future source:
 
 * AWS CloudWatch
-* Splunk
 * Docker
 * Command builder ( for local and ssh logs based on what you want to look at)
 
@@ -59,6 +59,8 @@ Available Commands:
 			  Without subcommand open the query TUI
 
 Flags:
+      --client-body string             File containing base body to be used by the underlying client
+      --client-headers string          File containings list of headers to be used by the underlying client
       --cmd string                     If using ssh or local , manual command to run
   -c, --config string                  Config for preconfigure context for search
       --elk-index string               Elk index to search
@@ -79,6 +81,7 @@ Flags:
       --mylog                          read from logviewer logs file
       --opensearch-endpoint string     Opensearch endpoint
       --size int                       Get entry max size
+      --splunk-endpoint string         Splunk endpoint
       --ssh-addr string                SSH address and port localhost:22
       --ssh-identifiy string           SSH private key , by default $HOME/.ssh/id_rsa
       --ssh-user string                SSH user

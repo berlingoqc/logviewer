@@ -10,13 +10,14 @@ import (
 
 	"github.com/berlingoqc/logviewer/pkg/log/client"
 	"github.com/berlingoqc/logviewer/pkg/log/config"
-	"github.com/berlingoqc/logviewer/pkg/log/elk/kibana"
-	"github.com/berlingoqc/logviewer/pkg/log/elk/opensearch"
 	"github.com/berlingoqc/logviewer/pkg/log/factory"
-	"github.com/berlingoqc/logviewer/pkg/log/k8s"
-	"github.com/berlingoqc/logviewer/pkg/log/local"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/elk/kibana"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/elk/opensearch"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/k8s"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/local"
+	splunk "github.com/berlingoqc/logviewer/pkg/log/impl/splunk/logclient"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/ssh"
 	"github.com/berlingoqc/logviewer/pkg/log/printer"
-	"github.com/berlingoqc/logviewer/pkg/log/ssh"
 	"github.com/berlingoqc/logviewer/pkg/ty"
 	"github.com/berlingoqc/logviewer/pkg/views"
 
@@ -132,6 +133,15 @@ func resolveSearch() (client.LogSearchResult, error) {
 		}
 	}
 
+	if headerField != "" {
+		headerMap := ty.MS{}
+
+		if err := headerMap.LoadMS(headerField); err != nil {
+			return nil, err
+		}
+
+	}
+
 	var err error
 	var system string
 
@@ -147,9 +157,12 @@ func resolveSearch() (client.LogSearchResult, error) {
 		} else {
 			system = "local"
 		}
+	} else if endpointSplunk != "" {
+		system = "splunk"
 	} else {
 		return nil, errors.New(`
         failed to select a system for logging provide one of the following:
+			* --splunk-endpoint
 			* --kibana-endpoint
             * --openseach-endpoint
             * --k8s-namespace
@@ -168,6 +181,29 @@ func resolveSearch() (client.LogSearchResult, error) {
 		logClient, err = k8s.GetLogClient(k8s.K8sLogClientOptions{})
 	} else if system == "ssh" {
 		logClient, err = ssh.GetLogClient(sshOptions)
+	} else if system == "splunk" {
+		headers := ty.MS{}
+		body := ty.MS{}
+		if headerField != "" {
+			if err = headers.LoadMS(headerField); err != nil {
+				return nil, err
+			}
+
+			headers = headers.ResolveVariables()
+		}
+		if bodyField != "" {
+			if err = body.LoadMS(bodyField); err != nil {
+				return nil, err
+			}
+
+			body = body.ResolveVariables()
+		}
+
+		logClient, err = splunk.GetClient(splunk.SplunkLogSearchClientOptions{
+			Url:        endpointSplunk,
+			SearchBody: body,
+			Headers:    headers,
+		})
 	} else {
 		logClient, err = local.GetLogClient()
 	}
