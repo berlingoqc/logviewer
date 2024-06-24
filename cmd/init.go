@@ -23,7 +23,6 @@ var (
 	endpointSplunk string
 
 	// docker
-	dockerFlag      bool
 	dockerHost      string
 	dockerContainer string
 
@@ -90,7 +89,6 @@ func init() {
 	// SPLUNK
 	queryCommand.PersistentFlags().StringVar(&endpointSplunk, "splunk-endpoint", "", "Splunk endpoint")
 	// DOCKER
-	queryCommand.PersistentFlags().BoolVar(&dockerFlag, "docker", false, "Enable docker without option using your default context from DOCKER_HOST")
 	queryCommand.PersistentFlags().StringVar(&dockerHost, "docker-host", "", "Docker context")
 	queryCommand.PersistentFlags().StringVar(&dockerContainer, "docker-container", "", "Docker container")
 

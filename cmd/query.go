@@ -167,12 +167,12 @@ func resolveSearch() (client.LogSearchResult, error) {
 		}
 	} else if endpointSplunk != "" {
 		system = "splunk"
-	} else if dockerFlag || dockerHost != "" {
+	} else if dockerContainer != "" {
 		system = "docker"
 	} else {
 		return nil, errors.New(`
         failed to select a system for logging provide one of the following:
-			* --docker-host or --docker
+			* --docker-container
 			* --splunk-endpoint
 			* --kibana-endpoint
             * --openseach-endpoint
