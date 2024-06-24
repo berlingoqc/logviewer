@@ -9,11 +9,13 @@ type SearchRange struct {
 }
 
 type RefreshOptions struct {
+	Follow   ty.Opt[bool]   `json:"follow,omitempty"`
 	Duration ty.Opt[string] `json:"duration,omitempty"`
 }
 
 type FieldExtraction struct {
-	Regex ty.Opt[string] `json:"regex,omitempty"`
+	Regex          ty.Opt[string] `json:"regex,omitempty"`
+	TimestampRegex ty.Opt[string] `json:"date,omitempty"`
 }
 
 type PrinterOptions struct {

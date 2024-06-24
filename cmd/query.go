@@ -11,6 +11,7 @@ import (
 	"github.com/berlingoqc/logviewer/pkg/log/client"
 	"github.com/berlingoqc/logviewer/pkg/log/config"
 	"github.com/berlingoqc/logviewer/pkg/log/factory"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/docker"
 	"github.com/berlingoqc/logviewer/pkg/log/impl/elk/kibana"
 	"github.com/berlingoqc/logviewer/pkg/log/impl/elk/opensearch"
 	"github.com/berlingoqc/logviewer/pkg/log/impl/k8s"
@@ -105,6 +106,8 @@ func resolveSearch() (client.LogSearchResult, error) {
 		searchRequest.PrinterOptions.Template.S(template)
 	}
 
+	searchRequest.Refresh.Follow.S(refresh)
+
 	if contextPath != "" {
 		if len(contextIds) != 1 {
 			return nil, errors.New("-i required only exactly one element when doing a query log or query tag")
@@ -142,6 +145,11 @@ func resolveSearch() (client.LogSearchResult, error) {
 
 	}
 
+	if dockerContainer != "" {
+
+		searchRequest.Options["Container"] = dockerContainer
+	}
+
 	var err error
 	var system string
 
@@ -159,9 +167,12 @@ func resolveSearch() (client.LogSearchResult, error) {
 		}
 	} else if endpointSplunk != "" {
 		system = "splunk"
+	} else if dockerFlag || dockerHost != "" {
+		system = "docker"
 	} else {
 		return nil, errors.New(`
         failed to select a system for logging provide one of the following:
+			* --docker-host or --docker
 			* --splunk-endpoint
 			* --kibana-endpoint
             * --openseach-endpoint
@@ -181,6 +192,8 @@ func resolveSearch() (client.LogSearchResult, error) {
 		logClient, err = k8s.GetLogClient(k8s.K8sLogClientOptions{})
 	} else if system == "ssh" {
 		logClient, err = ssh.GetLogClient(sshOptions)
+	} else if system == "docker" {
+		logClient, err = docker.GetLogClient(dockerHost)
 	} else if system == "splunk" {
 		headers := ty.MS{}
 		body := ty.MS{}
@@ -254,11 +267,15 @@ var queryLogCommand = &cobra.Command{
 			panic(err1)
 		}
 		outputter := printer.PrintPrinter{}
-		outputter.Display(context.Background(), searchResult)
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt)
-		<-c
-
+		continous, err := outputter.Display(context.Background(), searchResult)
+		if err != nil {
+			panic(err)
+		}
+		if continous {
+			c := make(chan os.Signal, 1)
+			signal.Notify(c, os.Interrupt)
+			<-c
+		}
 	},
 }
 

@@ -12,7 +12,7 @@ type LogPrinter interface {
 	Display(ctx context.Context, result client.LogSearchResult) error
 }
 
-func WrapIoWritter(ctx context.Context, result client.LogSearchResult, writer io.Writer, update func()) error {
+func WrapIoWritter(ctx context.Context, result client.LogSearchResult, writer io.Writer, update func()) (bool, error) {
 
 	templateConfig := result.GetSearch().PrinterOptions.Template
 
@@ -22,12 +22,12 @@ func WrapIoWritter(ctx context.Context, result client.LogSearchResult, writer io
 
 	template, err3 := template.New("print_printer").Funcs(GetTemplateFunctionsMap()).Parse(templateConfig.Value + "\n")
 	if err3 != nil {
-		return err3
+		return false, err3
 	}
 
 	entries, newEntriesChannel, err := result.GetEntries(ctx)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	for _, entry := range entries {
@@ -37,7 +37,7 @@ func WrapIoWritter(ctx context.Context, result client.LogSearchResult, writer io
 	update()
 
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if newEntriesChannel != nil {
@@ -70,5 +70,5 @@ func WrapIoWritter(ctx context.Context, result client.LogSearchResult, writer io
 
 	}
 
-	return nil
+	return newEntriesChannel != nil, nil
 }

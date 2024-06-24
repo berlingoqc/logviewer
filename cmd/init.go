@@ -22,6 +22,11 @@ var (
 	// splunk
 	endpointSplunk string
 
+	// docker
+	dockerFlag      bool
+	dockerHost      string
+	dockerContainer string
+
 	// ssh options
 	sshOptions ssh.SSHLogClientOptions
 	cmd        string
@@ -84,6 +89,11 @@ func init() {
 	queryCommand.PersistentFlags().StringVar(&index, "elk-index", "", "Elk index to search")
 	// SPLUNK
 	queryCommand.PersistentFlags().StringVar(&endpointSplunk, "splunk-endpoint", "", "Splunk endpoint")
+	// DOCKER
+	queryCommand.PersistentFlags().BoolVar(&dockerFlag, "docker", false, "Enable docker without option using your default context from DOCKER_HOST")
+	queryCommand.PersistentFlags().StringVar(&dockerHost, "docker-host", "", "Docker context")
+	queryCommand.PersistentFlags().StringVar(&dockerContainer, "docker-container", "", "Docker container")
+
 	// SSH
 	queryCommand.PersistentFlags().StringVar(&sshOptions.Addr, "ssh-addr", "", "SSH address and port localhost:22")
 	queryCommand.PersistentFlags().StringVar(&sshOptions.User, "ssh-user", "", "SSH user")
