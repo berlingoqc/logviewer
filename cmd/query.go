@@ -109,27 +109,41 @@ func resolveSearch() (client.LogSearchResult, error) {
 	searchRequest.Refresh.Follow.S(refresh)
 
 	if contextPath != "" {
-		if len(contextIds) != 1 {
-			return nil, errors.New("-i required only exactly one element when doing a query log or query tag")
-		}
-		var config config.ContextConfig
-		if err := ty.ReadJsonFile(contextPath, &config); err != nil {
-			return nil, err
+		if len(contextIds) < 1 {
+			return nil, errors.New("-i required at least one element when doing a query log or query tag")
 		}
 
-		clientFactory, err := factory.GetLogClientFactory(config.Clients)
-		if err != nil {
-			return nil, err
+		results := make([]client.LogSearchResult, len(contextIds))
+
+		for i, contextId := range contextIds {
+			var config config.ContextConfig
+			if err := ty.ReadJsonFile(contextPath, &config); err != nil {
+				return nil, err
+			}
+
+			clientFactory, err := factory.GetLogClientFactory(config.Clients)
+			if err != nil {
+				return nil, err
+			}
+
+			searchFactory, err := factory.GetLogSearchFactory(clientFactory, config)
+			if err != nil {
+				return nil, err
+			}
+
+			sr, err := searchFactory.GetSearchResult(contextId, inherits, searchRequest)
+			if err != nil {
+				return nil, err
+			}
+
+			results[i] = sr
 		}
 
-		searchFactory, err := factory.GetLogSearchFactory(clientFactory, config)
-		if err != nil {
-			return nil, err
+		if len(results) == 1 {
+			return results[0], nil
 		}
 
-		sr, err := searchFactory.GetSearchResult(contextIds[0], inherits, searchRequest)
-
-		return sr, err
+		return factory.ConcatSearchResult(results)
 	} else {
 		if len(inherits) > 0 {
 			return nil, errors.New("--inherits is only when using --config")
