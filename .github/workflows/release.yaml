@@ -26,6 +26,10 @@ jobs:
         run: ./build.sh
         env:
           VERSION: ${{ steps.tag.outputs.tag }}
+      - name: Login docker
+        run: docker login https://ghcr.io -u berlingoqc -p $GITHUB_ACCESS_TOKEN
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.PAT }}
       - name: Docker build
         run: docker build -t ghcr.io/berlingoqc/logviewer:${VERSION} .
         env:
