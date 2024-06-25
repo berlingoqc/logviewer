@@ -74,7 +74,7 @@ func (lc DockerLogClient) Get(search *logclient.LogSearch) (logclient.LogSearchR
 
 func GetLogClient(host string) (logclient.LogClient, error) {
 
-	apiClient, err := client.NewClientWithOpts(client.FromEnv, client.WithHost(host), client.WithAPIVersionNegotiation())
+	apiClient, err := client.NewClientWithOpts(client.WithHost(host), client.WithAPIVersionNegotiation())
 	if err != nil {
 		panic(err)
 	}

@@ -23,6 +23,7 @@ type PrinterOptions struct {
 }
 
 type LogSearch struct {
+	Name string `json:"name,omitempty"`
 	// Current filterring fields
 	Fields ty.MS `json:"fields,omitempty"`
 	// Extra rules for filtering fields
@@ -47,6 +48,10 @@ type LogSearch struct {
 }
 
 func (lr *LogSearch) MergeInto(logSeach *LogSearch) error {
+
+	if logSeach.Name != "" {
+		lr.Name = logSeach.Name
+	}
 
 	if lr.Fields == nil {
 		lr.Fields = ty.MS{}
