@@ -9,7 +9,7 @@ import (
 
 type PrintPrinter struct{}
 
-func (pp PrintPrinter) Display(ctx context.Context, result client.LogSearchResult) error {
+func (pp PrintPrinter) Display(ctx context.Context, result client.LogSearchResult) (bool, error) {
 
 	return WrapIoWritter(ctx, result, os.Stdout, func() {})
 }

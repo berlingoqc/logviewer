@@ -63,6 +63,8 @@ Flags:
       --client-headers string          File containings list of headers to be used by the underlying client
       --cmd string                     If using ssh or local , manual command to run
   -c, --config string                  Config for preconfigure context for search
+      --docker-container string        Docker container
+      --docker-host string             Docker context
       --elk-index string               Elk index to search
   -f, --fields stringArray             Field for selection field=value
       --fields-condition stringArray   Field Ops for selection field=value (match, exists, wildcard, regex)
@@ -153,6 +155,47 @@ INFO - name='/health/healthcheck' total=1
 ```bash
 -> % logviewer --k8s-container frontend-dev-75fb7b89bb-9msbl --k8s-namespace growbe-prod  query log
 ```
+
+#### Query from docker
+
+Will used your `$DOCKER_HOST` if `--docker-host` is not provided , only required arguments is the name
+of the container to query log for.
+
+```bash
+logviewer query log --docker-host "unix:///Users/William.Quintal/.colima/lol/docker.sock" --docker-container "growbe-portal" --refresh --last 42h
+```
+
+
+```
+{
+    "clients": {
+      "docker-local": {
+        "type": "docker",
+        "options": {
+          "Host": "unix:///Users/William.Quintal/.colima/lol/docker.sock"
+        }
+      }
+    },
+    "contexts": {
+      "growbe-portal": {
+        "client": "docker-local",
+        "search": {
+          "range": {
+            "last": "24h"
+          },
+          "fields": {
+            
+          },
+          "options": {
+            "Container": "growbe-portal"
+          }
+        }
+      }
+    }
+  }
+```
+
+
 
 #### Query from command local or ssh
 

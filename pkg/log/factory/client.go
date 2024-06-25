@@ -5,6 +5,7 @@ import (
 
 	"github.com/berlingoqc/logviewer/pkg/log/client"
 	"github.com/berlingoqc/logviewer/pkg/log/config"
+	"github.com/berlingoqc/logviewer/pkg/log/impl/docker"
 	"github.com/berlingoqc/logviewer/pkg/log/impl/elk/kibana"
 	"github.com/berlingoqc/logviewer/pkg/log/impl/elk/opensearch"
 	"github.com/berlingoqc/logviewer/pkg/log/impl/k8s"
@@ -92,6 +93,12 @@ func GetLogClientFactory(clients config.Clients) (*logClientFactory, error) {
 				}
 
 				return &vv, nil
+			})
+		case "docker":
+			logClientFactory.clients[k] = ty.GetLazy(func() (*client.LogClient, error) {
+				vv, err := docker.GetLogClient(v.Options.GetString("Host"))
+
+				return &vv, err
 			})
 		default:
 			return nil, errors.New("invalid type for client : " + v.Type)

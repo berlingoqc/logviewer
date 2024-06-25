@@ -5,6 +5,8 @@ import (
 	"context"
 	"io"
 	"regexp"
+	"strings"
+	"time"
 
 	"github.com/berlingoqc/logviewer/pkg/log/client"
 	"github.com/berlingoqc/logviewer/pkg/ty"
@@ -22,6 +24,7 @@ type ReaderLogResult struct {
 	fields  ty.UniSet[string]
 
 	regexExtraction *regexp.Regexp
+	regexDate       *regexp.Regexp
 }
 
 func (lr ReaderLogResult) GetSearch() *client.LogSearch {
@@ -32,6 +35,14 @@ func (lr *ReaderLogResult) parseLine(line string) bool {
 	entry := client.LogEntry{
 		Message: line,
 		Fields:  make(ty.MI),
+	}
+
+	// check if we have a date at the beginning and parse / remove it
+	if lr.regexDate != nil {
+		entry.Message = strings.TrimLeft(lr.regexDate.ReplaceAllStringFunc(line, func(v string) string {
+			entry.Timestamp, _ = time.Parse(ty.Format, v)
+			return ""
+		}), " ")
 	}
 
 	if lr.regexExtraction != nil {
@@ -73,7 +84,7 @@ func (lr *ReaderLogResult) loadEntries() bool {
 
 func (lr ReaderLogResult) GetEntries(ctx context.Context) ([]client.LogEntry, chan []client.LogEntry, error) {
 
-	if lr.search.Refresh.Duration.Value == "" {
+	if !lr.search.Refresh.Follow.Value {
 		lr.loadEntries()
 		lr.closer.Close()
 		return lr.entries, nil, nil
@@ -118,12 +129,17 @@ func GetLogResult(
 	if search.FieldExtraction.Regex.Value != "" {
 		regexExtraction = regexp.MustCompile(search.FieldExtraction.Regex.Value)
 	}
+	var regexDateExtraction *regexp.Regexp
+	if search.FieldExtraction.TimestampRegex.Value != "" {
+		regexDateExtraction = regexp.MustCompile(search.FieldExtraction.TimestampRegex.Value)
+	}
 
 	result := ReaderLogResult{
 		search:          search,
 		scanner:         scanner,
 		closer:          closer,
 		regexExtraction: regexExtraction,
+		regexDate:       regexDateExtraction,
 		fields:          make(ty.UniSet[string]),
 	}
 
