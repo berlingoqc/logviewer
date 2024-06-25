@@ -7,6 +7,9 @@ export SHA=$(git rev-parse --short HEAD)
 export VERSION=${VERSION:-$SHA}
 
 
+echo "building version $VERSION"
+
+
 linuxTarget=(arm64)
 macTarget=(arm64)
 
